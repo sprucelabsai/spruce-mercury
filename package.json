@@ -30,7 +30,9 @@
 		"watch": "chokidar 'src/**/*.(js|jsx|ts|tsx)' -c 'npm run build'",
 		"clean": "rm -rf build/",
 		"lint": "eslint '**/*.ts' && tsc -p . --noEmit",
-		"lint:fix": "eslint --fix '**/*.ts'"
+		"lint:fix": "eslint --fix '**/*.ts'",
+		"test": "mocha -r ts-node/register/transpile-only --exit 'tests/**/*Tests*'",
+		"release": "semantic-release"
 	},
 	"dependencies": {
 		"buffer": "^5.4.3",
