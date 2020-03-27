@@ -62,7 +62,7 @@ workflows:
                 - alpha
                 - qa
                 - dev
-                - /prerelease\/.*/
+                - /prerelease-.*/
       - tag_latest:
           context: public_package_publish
           filters:
