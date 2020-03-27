@@ -35,10 +35,7 @@
 		"release": "semantic-release"
 	},
 	"dependencies": {
-		"buffer": "^5.4.3",
 		"debug": "^4.1.1",
-		"graphql-request": "^1.8.2",
-		"graphql-tools": "^4.0.4",
 		"randombytes": "^2.1.0",
 		"rollup": "^1.27.14",
 		"socket.io-client": "^2.3.0",
@@ -52,7 +49,7 @@
 		"@rollup/plugin-typescript": "^2.0.1",
 		"@semantic-release/changelog": "^5.0.0",
 		"@semantic-release/git": "^9.0.0",
-		"@sprucelabs/semantic-release": "^2.0.8",
+		"@sprucelabs/semantic-release": "^3.0.3",
 		"@types/chai": "^4.2.3",
 		"@types/debug": "^4.1.5",
 		"@types/faker": "^4.1.11",

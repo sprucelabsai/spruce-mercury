@@ -1,14 +1,13 @@
-const spruceSemanticRelease = require('@sprucelabs/semantic-release')
+const spruceSemanticRelease = require('@sprucelabs/semantic-release').default
 
 const config = spruceSemanticRelease({
 	npmPublish: true,
 	branches: [
-		'master',
-		{ name: 'alpha', prerelease: true },
-		{ name: 'qa', prerelease: true },
-		{ name: 'dev', prerelease: true },
+		{ name: 'dev', channel: 'beta' },
+		{ name: 'canary', prerelease: true },
 		{ name: 'prerelease/*', prerelease: true }
-	]
+	],
+	releaseMessage: 'chore(release): ${nextRelease.version} [skip-ci-version]'
 })
 
 module.exports = config
