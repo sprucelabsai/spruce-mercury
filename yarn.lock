@@ -389,10 +389,15 @@
     lodash "^4.17.4"
     read-pkg-up "^7.0.0"
 
-"@sprucelabs/semantic-release@^3.0.3":
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@sprucelabs/semantic-release/-/semantic-release-3.0.3.tgz#0d5d1e70e6e5b962b9f3147ef48459560627833d"
-  integrity sha512-GFA7Mq8cpvabA8lrweuxfyySohpwfOXQtY4IL5O3J79j2uHGlpFL6nNhoUStv88zf57epA10QWPxnS7OABZBEg==
+"@sprucelabs/semantic-release@^3.0.4":
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/@sprucelabs/semantic-release/-/semantic-release-3.0.4.tgz#7c9983990fe7a707909ba87a5797f75911c24d0c"
+  integrity sha512-a8q3s8vH7uGLE47fyqaAboVbRhQ3YPAU4eO0vzp2ZBuvf++8tD5Ye/OvFce7e6mt8qBoU8HNoJIuzsK7DbvLGQ==
+  dependencies:
+    "@semantic-release/changelog" "^5.0.0"
+    "@semantic-release/git" "^9.0.0"
+    conventional-changelog-sprucelabs "^1.1.0"
+    semantic-release "^17.0.4"
 
 "@tootallnate/once@1":
   version "1.0.0"
@@ -1512,6 +1517,14 @@ conventional-changelog-angular@^5.0.0:
   version "5.0.6"
   resolved "https://registry.yarnpkg.com/conventional-changelog-angular/-/conventional-changelog-angular-5.0.6.tgz#269540c624553aded809c29a3508fdc2b544c059"
   integrity sha512-QDEmLa+7qdhVIv8sFZfVxU1VSyVvnXPsxq8Vam49mKUcO1Z8VTLEJk9uI21uiJUsnmm0I4Hrsdc9TgkOQo9WSA==
+  dependencies:
+    compare-func "^1.3.1"
+    q "^1.5.1"
+
+conventional-changelog-sprucelabs@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/conventional-changelog-sprucelabs/-/conventional-changelog-sprucelabs-1.1.0.tgz#3c4b207f8cd44094ef5b518f4f90b98313e946f5"
+  integrity sha512-zN+o4uWRGDdytz6OQQ3O+ChIXIdk/pR+1P1zUMcnYcmOdcc+rC/Hi5vC10bbH6uRPaMLqBTIwIRgVMTyJwZlDQ==
   dependencies:
     compare-func "^1.3.1"
     q "^1.5.1"
