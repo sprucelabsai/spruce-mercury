@@ -433,7 +433,7 @@ export class Mercury {
 		if (userId) {
 			const userKey = `users-${userId}`
 			possibleHandlerKeys.push(`${base}-${userKey}`)
-			// if (orgKey) {
+			// If (orgKey) {
 			// 	possibleHandlerKeys.push(`${base}-${orgKey}-${userKey}`)
 			// }
 			// if (orgKey && locationKey) {
@@ -529,7 +529,7 @@ export class Mercury {
 		})
 
 		const eventId = data && data.eventId
-		// const eventName = data && data.eventName
+		// Const eventName = data && data.eventName
 
 		log.debug({ eventHandlers: this.eventHandlers, code, data })
 
