@@ -21,7 +21,6 @@ if (typeof window === 'undefined') {
 
 export interface IMercuryAdapterSocketIOOptions {
 	socketIOUrl: string
-	// Jwt?: string
 }
 
 export default class MercuryAdapterSocketIO implements MercuryAdapter {

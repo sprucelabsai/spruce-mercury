@@ -433,12 +433,6 @@ export class Mercury {
 		if (userId) {
 			const userKey = `users-${userId}`
 			possibleHandlerKeys.push(`${base}-${userKey}`)
-			// If (orgKey) {
-			// 	possibleHandlerKeys.push(`${base}-${orgKey}-${userKey}`)
-			// }
-			// if (orgKey && locationKey) {
-			// 	possibleHandlerKeys.push(`${base}-${orgKey}-${locationKey}-${userKey}`)
-			// }
 		}
 
 		return possibleHandlerKeys
@@ -455,7 +449,6 @@ export class Mercury {
 		const { spruceApiUrl, credentials } = options
 
 		// In the future if we have multiple adapters we could call the api to determine the type of adapter to use
-
 		// const response = await request
 		// 	.post(`${spruceApiUrl}/api/2.0/mercury/connect`)
 		// 	.send(credentials)
@@ -529,7 +522,6 @@ export class Mercury {
 		})
 
 		const eventId = data && data.eventId
-		// Const eventName = data && data.eventName
 
 		log.debug({ eventHandlers: this.eventHandlers, code, data })
 
