@@ -81,7 +81,6 @@ export type MercuryAuth =
 	| IMercuryAuthSkill
 	| IMercuryAuthUsernamePassword
 
-
 export enum MercuryRole {
 	User = 'user',
 	Skill = 'skill',
@@ -120,7 +119,6 @@ export interface IMercuryEmitOptions<TPayload = Record<string, any>> {
 	payload?: TPayload
 	credentials?: MercuryAuth
 }
-
 
 export interface IMercuryConnectOptions {
 	/** The URL for the Spruce API */
@@ -203,7 +201,6 @@ export class Mercury {
 
 	/** Connects Mercury. Calling this method directly  */
 	public async connect(options: IMercuryConnectOptions): Promise<void> {
-
 		const { onConnect, onDisconnect, credentials } = options
 
 		this.connectionOptions = options
