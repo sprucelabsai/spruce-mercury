@@ -81,14 +81,6 @@ export type MercuryAuth =
 	| IMercuryAuthSkill
 	| IMercuryAuthUsernamePassword
 
-export interface IMercuryConnectOptions {
-	/** The adapter the client should use */
-	adapter: MercuryAdapterKind
-
-	/** Adapter connection options */
-	connectionOptions: Record<string, any>
-}
-
 export enum MercuryRole {
 	User = 'user',
 	Skill = 'skill',
@@ -128,7 +120,7 @@ export interface IMercuryEmitOptions<TPayload = Record<string, any>> {
 	credentials?: MercuryAuth
 }
 
-export interface IMercuryInitilizationOptions {
+export interface IMercuryConnectOptions {
 	/** The URL for the Spruce API */
 	spruceApiUrl: string
 
@@ -174,7 +166,7 @@ export enum MercurySubscriptionScope {
 
 export class Mercury {
 	public logLevel = 'warn'
-
+	public connectionOptions?: IMercuryConnectOptions
 	public get isConnected(): boolean {
 		if (this.adapter) {
 			return this.adapter.isConnected
@@ -194,7 +186,10 @@ export class Mercury {
 	> = {}
 	private credentials?: MercuryAuth
 
-	public constructor(options?: IMercuryInitilizationOptions) {
+	public constructor(options?: IMercuryConnectOptions) {
+		if (!options) {
+			return
+		}
 		this.connect(options)
 			.then(() => {
 				log.debug('Mercury connect finished')
@@ -205,14 +200,10 @@ export class Mercury {
 	}
 
 	/** Connects Mercury. Calling this method directly  */
-	public async connect(options?: IMercuryInitilizationOptions): Promise<void> {
-		if (!options) {
-			log.warn('Mercury not initialized. Missing "options" in constructor')
-			return
-		}
-
+	public async connect(options: IMercuryConnectOptions): Promise<void> {
 		const { onConnect, onDisconnect, credentials } = options
 
+		this.connectionOptions = options
 		this.clientOnConnect = onConnect
 		this.clientOnDisconnect = onDisconnect
 		this.credentials = credentials
@@ -352,7 +343,6 @@ export class Mercury {
 			this.eventHandlers[eventId].onFinished.push(onFinishedHandler)
 		}
 		if (onErrorHandler) {
-			console.log(this.eventHandlers[eventId])
 			this.eventHandlers[eventId].onError.push(onErrorHandler)
 		}
 
