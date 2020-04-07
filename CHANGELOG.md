@@ -1,3 +1,10 @@
+# [10.2.0](https://github.com/sprucelabsai/spruce-mercury/compare/v10.1.0...v10.2.0) (2020-04-07)
+
+
+### Features
+
+* don't get warned about not passing connect options on initialization ([c3671b3](https://github.com/sprucelabsai/spruce-mercury/commit/c3671b3))
+
 # [10.1.0](https://github.com/sprucelabsai/spruce-mercury/compare/v10.0.2...v10.1.0) (2020-04-02)
 
 
