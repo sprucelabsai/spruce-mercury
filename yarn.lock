@@ -2132,10 +2132,10 @@ eslint-config-prettier@^6.7.0:
   dependencies:
     get-stdin "^6.0.0"
 
-eslint-config-spruce@^10.1.0:
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-spruce/-/eslint-config-spruce-10.1.0.tgz#911dd2bcc114002cc5e6926cff9aa0163e0423be"
-  integrity sha512-oUjJ1ijfJAjpqm+7pqDpA1PAuZdUalmf0jVYVEmQNPj3OMsGkmUGwJl3WTBklO3J5S2aCAADnMN/afVwGMJ4Jg==
+eslint-config-spruce@^10.2.0:
+  version "10.2.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-spruce/-/eslint-config-spruce-10.2.0.tgz#3609703ca1466c88c6c43bbe68d9cf2402f41c9e"
+  integrity sha512-5ErQk4dFHeLWGbUOtWb60Oqz3FyPpu1GOOTaDRQalj8tEwVZxbZRBGRVIIeFuawOJ2tKVfOYPJ1quQfhmEsE7w==
   dependencies:
     "@typescript-eslint/eslint-plugin" "^2.22.0"
     "@typescript-eslint/parser" "^2.22.0"

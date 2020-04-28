@@ -1,6 +1,7 @@
 import log from './lib/log'
 import { MercuryAdapter } from './MercuryAdapter'
 import MercuryAdapterSocketIO from './adapters/MercuryAdapterSocketIO'
+import MercuryAdapterMock from './adapters/MercuryAdapterMock'
 
 export interface IOnData {
 	/** The event name that is being triggered */
@@ -44,7 +45,8 @@ export type TOnConnectHandler =
 
 export enum MercuryAdapterKind {
 	// eslint-disable-next-line spruce/prefer-pascal-case-enums
-	SocketIO = 'socketio'
+	SocketIO = 'socketio',
+	Mock = 'mock'
 }
 
 export interface IMercuryError {}
@@ -142,6 +144,9 @@ export interface IMercuryConnectOptions {
 	 * Mercury will handle cleanup of callback functions created in onConnect
 	 */
 	onDisconnect?: TOnConnectHandler
+
+	/** When set to true, a mock instance of mercury that does not connect to a real api is used. Use this option in your unit tests. */
+	useMock?: boolean
 }
 
 /** The scope of the data in a subscription */
@@ -375,6 +380,17 @@ export class Mercury {
 				)
 				isAdapterSet = true
 				break
+			case MercuryAdapterKind.Mock:
+				this.adapter = new MercuryAdapterMock()
+				this.adapter.init(
+					connectionOptions,
+					this.handleEvent.bind(this),
+					this.handleError.bind(this),
+					this.onConnect.bind(this),
+					this.onDisconnect.bind(this)
+				)
+				isAdapterSet = true
+				break
 			default:
 				break
 		}
@@ -429,14 +445,13 @@ export class Mercury {
 	}
 
 	/** Sends the authentication credentials to the API and gets back the adapter details to use for connecting */
-	private async getAdapterOptions(options: {
-		spruceApiUrl: string
-		credentials?: MercuryAuth
-	}): Promise<{
+	private async getAdapterOptions(
+		options: IMercuryConnectOptions
+	): Promise<{
 		adapter: MercuryAdapterKind
 		connectionOptions: Record<string, any>
 	}> {
-		const { spruceApiUrl, credentials } = options
+		const { spruceApiUrl, credentials, useMock } = options
 
 		// In the future if we have multiple adapters we could call the api to determine the type of adapter to use
 		// const response = await request
@@ -445,7 +460,7 @@ export class Mercury {
 		// return response.body
 
 		return {
-			adapter: MercuryAdapterKind.SocketIO,
+			adapter: useMock ? MercuryAdapterKind.Mock : MercuryAdapterKind.SocketIO,
 			connectionOptions: {
 				socketIOUrl: spruceApiUrl,
 				...credentials
