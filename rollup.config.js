@@ -18,7 +18,7 @@ export default {
 	external: ['fs', 'http', 'https', 'child_process'],
 	plugins: [
 		replace({
-			include: ['node_modules/uuid/**'],
+			include: [],
 			delimiters: ['', ''],
 			values: {
 				'crypto.randomBytes': "require('randombytes')"
