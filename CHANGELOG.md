@@ -1,3 +1,10 @@
+# [10.5.0](https://github.com/sprucelabsai/spruce-mercury/compare/v10.4.0...v10.5.0) (2020-05-13)
+
+
+### Features
+
+* readme link update ([c53aa0a](https://github.com/sprucelabsai/spruce-mercury/commit/c53aa0a))
+
 # [10.4.0](https://github.com/sprucelabsai/spruce-mercury/compare/v10.3.0...v10.4.0) (2020-05-13)
 
 
