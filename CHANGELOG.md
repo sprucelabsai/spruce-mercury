@@ -1,3 +1,10 @@
+# [10.4.0](https://github.com/sprucelabsai/spruce-mercury/compare/v10.3.0...v10.4.0) (2020-05-13)
+
+
+### Features
+
+* missed bullets image ([e35d9ff](https://github.com/sprucelabsai/spruce-mercury/commit/e35d9ff))
+
 # [10.3.0](https://github.com/sprucelabsai/spruce-mercury/compare/v10.2.0...v10.3.0) (2020-05-13)
 
 
