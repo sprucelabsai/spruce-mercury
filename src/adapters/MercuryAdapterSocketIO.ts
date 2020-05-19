@@ -1,12 +1,14 @@
+/* eslint-disable import/order */
 import log from '../lib/log'
 import { MercuryAdapter } from '../MercuryAdapter'
 import {
-	TOnPromiseHandler,
-	TOnConnectFunctionHandler,
-	IMercuryEmitOptions,
+	OnPromiseHandler,
+	OnConnectFunctionHandler,
+	OnErrorHandler,
 	IMercuryAdapterOnOptions,
-	TOnErrorHandler
-} from '../Mercury'
+	IMercuryEventContract
+} from '../types/mercuryEvents'
+import { IMercuryEmitOptions } from '../Mercury'
 
 // Import correct version depending on whether we're in browser or node.
 // Fun gotcha: We can't use require() syntax in browser or it won't compile properly
@@ -23,21 +25,23 @@ export interface IMercuryAdapterSocketIOOptions {
 	socketIOUrl: string
 }
 
-export default class MercuryAdapterSocketIO implements MercuryAdapter {
+export default class MercuryAdapterSocketIO<
+	EventContract extends IMercuryEventContract
+> implements MercuryAdapter {
 	public isConnected = false
 	private socket?: any
 	private options!: IMercuryAdapterSocketIOOptions
-	private eventHandler!: TOnPromiseHandler
-	private errorHandler!: TOnErrorHandler
-	private onConnect!: TOnConnectFunctionHandler
-	private onDisconnect!: TOnConnectFunctionHandler
+	private eventHandler!: OnPromiseHandler
+	private errorHandler!: OnErrorHandler
+	private onConnect!: OnConnectFunctionHandler
+	private onDisconnect!: OnConnectFunctionHandler
 
 	public init(
 		options: IMercuryAdapterSocketIOOptions,
-		eventHandler: TOnPromiseHandler,
-		errorHandler: TOnErrorHandler,
-		onConnect: TOnConnectFunctionHandler,
-		onDisconnect: TOnConnectFunctionHandler
+		eventHandler: OnPromiseHandler,
+		errorHandler: OnErrorHandler,
+		onConnect: OnConnectFunctionHandler,
+		onDisconnect: OnConnectFunctionHandler
 	): void {
 		log.debug({ options })
 		this.options = options
@@ -61,7 +65,18 @@ export default class MercuryAdapterSocketIO implements MercuryAdapter {
 		}
 	}
 
-	public emit(options: IMercuryEmitOptions) {
+	public emit<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(
+		options: IMercuryEmitOptions<
+			EventContract,
+			Namespace,
+			EventName,
+			EventSpace
+		>
+	) {
 		if (!this.socket) {
 			log.warn('Can not emit. SocketIO not connected.')
 			return

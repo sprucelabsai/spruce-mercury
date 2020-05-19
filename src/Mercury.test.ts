@@ -2,6 +2,7 @@
 import BaseTest, { test, assert } from '@sprucelabs/test'
 import { Mercury } from './Mercury'
 import { IMercuryEventContract } from './types/mercuryEvents'
+import { MercurySubscriptionScope } from './types/subscriptions'
 
 // const eventContract = {
 // 	core: {
@@ -71,7 +72,17 @@ export default class MercuryTest extends BaseTest {
 		// 		console.log(body)
 		// 	}
 		// )
-		mercury.on
+		mercury.on(
+			{
+				namespace: 'core',
+				eventName: 'didEnter',
+				scope: MercurySubscriptionScope.AnonymousGlobal
+			},
+			options => {
+				console.log(options.payload.somethingElse)
+				console.log(options)
+			}
+		)
 
 		mercury.emit({
 			namespace: 'core',

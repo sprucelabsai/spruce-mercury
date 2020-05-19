@@ -5,10 +5,12 @@ import { MercuryAdapter } from './MercuryAdapter'
 import { MercuryAuth } from './types/auth'
 import {
 	IMercuryOnOptions,
+	IMercuryEmitOptions,
 	IMercuryEventContract,
 	OnHandler,
 	OnConnectHandler
 } from './types/mercuryEvents'
+import { MercurySubscriptionScope } from './types/subscriptions'
 
 export enum MercuryAdapterKind {
 	// eslint-disable-next-line spruce/prefer-pascal-case-enums
@@ -17,16 +19,6 @@ export enum MercuryAdapterKind {
 }
 
 export interface IMercuryError {}
-
-// export interface IMercuryEmitOptions<TPayload = Record<string, any>> {
-// 	eventId?: string
-// 	eventName: string
-// 	organizationId?: string | null
-// 	locationId?: string | null
-// 	userId?: string | null
-// 	payload?: TPayload
-// 	credentials?: MercuryAuth
-// }
 
 export interface IMercuryConnectOptions {
 	/** The URL for the Spruce API */
@@ -55,29 +47,6 @@ export interface IMercuryConnectOptions {
 	useMock?: boolean
 }
 
-// export interface IMercuryEventContract {
-// 	[namespace: string]: {
-// 		[eventName: string]: {
-// 			body: Record<string, any>
-// 			payload: Record<string, any>
-// 		}
-// 	}
-// }
-
-// export interface ITestContract extends IMercuryEventContract {
-// 	core: {
-// 		didEnter: {
-// 			name: string
-// 			body: {
-// 				blah: string
-// 			}
-// 			payload: {
-// 				somethingElse: string
-// 			}
-// 		}
-// 	}
-// }
-
 interface IEventHandlers {
 	[eventName: string]: {
 		// TODO: Can these be strongly typed?
@@ -86,31 +55,6 @@ interface IEventHandlers {
 		onResponse: OnHandler<any>[]
 	}
 }
-
-// export interface IMercuryEmitter<EventContract extends IMercuryEventContract> {
-// 	emit<
-// 		Namespace extends keyof EventContract,
-// 		EventName extends keyof EventContract[Namespace],
-// 		EventSpace extends EventContract[Namespace][EventName]
-// 	>(
-// 		options: {
-// 			namespace: Namespace
-// 			eventName: EventName
-// 			eventId?: string
-// 			organizationId?: string | null
-// 			locationId?: string | null
-// 			userId?: string | null
-// 			payload?: EventSpace['payload']
-// 			credentials?: MercuryAuth
-// 		},
-// 		handler?: OnHandler<EventSpace>
-// 	): Promise<{
-// 		responses: {
-// 			// payload: EventContract[Namespace][EventName]['body']
-// 			payload: EventSpace['body']
-// 		}[]
-// 	}>
-// }
 
 export class Mercury<EventContract extends IMercuryEventContract> {
 	public logLevel = 'warn'
@@ -159,7 +103,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		EventName extends keyof EventContract[Namespace],
 		EventSpace extends EventContract[Namespace][EventName]
 	>(
-		options: IMercuryOnOptions<Namespace, EventName, EventSpace>,
+		options: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>,
 		handler: OnHandler<EventSpace>
 	): void {
 		if (!this.adapter) {
@@ -204,16 +148,22 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		EventName extends keyof EventContract[Namespace],
 		EventSpace extends EventContract[Namespace][EventName]
 	>(
-		options: {
-			namespace: Namespace
-			eventName: EventName
-			eventId?: string
-			organizationId?: string | null
-			locationId?: string | null
-			userId?: string | null
-			payload?: EventSpace['payload']
-			credentials?: MercuryAuth
-		},
+		// options: {
+		// 	namespace: Namespace
+		// 	eventName: EventName
+		// 	eventId?: string
+		// 	organizationId?: string | null
+		// 	locationId?: string | null
+		// 	userId?: string | null
+		// 	payload?: EventSpace['payload']
+		// 	credentials?: MercuryAuth
+		// },
+		options: IMercuryEmitOptions<
+			EventContract,
+			Namespace,
+			EventName,
+			EventSpace
+		>,
 		handler?: OnHandler<EventSpace>
 	): Promise<{
 		responses: {
@@ -368,7 +318,9 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract[Namespace],
 		EventSpace extends EventContract[Namespace][EventName]
-	>(options: IMercuryOnOptions<EventSpace>): string {
+	>(
+		options: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
+	): string {
 		const { eventName, organizationId, locationId, userId } = options
 
 		let key = `events-${eventName}`
@@ -391,7 +343,9 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract[Namespace],
 		EventSpace extends EventContract[Namespace][EventName]
-	>(options: IMercuryOnOptions<EventSpace>): string[] {
+	>(
+		options: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
+	): string[] {
 		const { eventName, userId, locationId, organizationId } = options
 		const base = `events-${eventName}`
 		const possibleHandlerKeys: string[] = []
@@ -447,9 +401,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		EventName extends keyof EventContract[Namespace],
 		EventSpace extends EventContract[Namespace][EventName]
 	>(
-		options: IMercuryOnOptions<
-			EventContract[keyof EventContract][keyof EventContract[keyof EventContract]]
-		>
+		options: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
 	) {
 		log.debug('*** Mercury.handleEvent')
 		log.debug('Mercury: handleEvent', {
@@ -501,7 +453,29 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract[Namespace],
 		EventSpace extends EventContract[Namespace][EventName]
-	>(options: { code: string; data: IMercuryOnOptions<EventSpace> }) {
+	>(options: {
+		code: string
+		data: {
+			/** Whether this handler will provide a respone to the event. */
+			respond?: boolean
+			/** The event namespace */
+			namespace: Namespace
+			/** The event to subscribe to */
+			eventName: EventName
+			/** The scope of the data to get back */
+			scope: MercurySubscriptionScope
+			/** A custom UUID for this event. If not provided, one will be generated */
+			eventId?: string
+			/** The organization id where the event is triggered */
+			organizationId?: string | null
+			/** The location id where the event is triggered. If passed, organizationId should also be set. */
+			locationId?: string | null
+			/** The user id who is triggering this event */
+			userId?: string | null
+			payload?: EventSpace['payload']
+			responses?: EventSpace['body'][]
+		}
+	}) {
 		const { code, data } = options
 		log.debug('*** Mercury.handleError')
 		log.debug('Mercury: handleError', {

@@ -11,6 +11,8 @@ export interface IMercuryEventContract {
 	}
 }
 
+export type EventSpace = IMercuryEventContract[string][string]
+
 export interface IMercuryGQLBody<TBody = Record<string, any>> {
 	data: TBody
 	extensions: {
@@ -20,10 +22,27 @@ export interface IMercuryGQLBody<TBody = Record<string, any>> {
 	}
 }
 
+export interface IMercuryEmitOptions<
+	EventContract extends IMercuryEventContract,
+	Namespace extends keyof EventContract,
+	EventName extends keyof EventContract[Namespace],
+	EventSpace extends EventContract[Namespace][EventName]
+> {
+	namespace: Namespace
+	eventName: EventName
+	eventId?: string
+	organizationId?: string | null
+	locationId?: string | null
+	userId?: string | null
+	payload?: EventSpace['payload']
+	credentials?: MercuryAuth
+}
+
 export interface IMercuryOnOptions<
-	Namespace extends keyof IMercuryEventContract,
-	EventName extends keyof IMercuryEventContract[Namespace],
-	EventSpace extends IMercuryEventContract[string][string]
+	EventContract extends IMercuryEventContract,
+	Namespace extends keyof EventContract,
+	EventName extends keyof EventContract[Namespace],
+	EventSpace extends EventContract[Namespace][EventName]
 > {
 	/** Whether this handler will provide a respone to the event. */
 	respond?: boolean
@@ -45,34 +64,7 @@ export interface IMercuryOnOptions<
 	responses?: EventSpace['body'][]
 }
 
-export interface IMercuryAdapterOnOptions<
-	EventSpace extends IMercuryEventContract[string][string]
-> extends IMercuryOnOptions<EventSpace> {
-	credentials?: MercuryAuth
-}
-
-export type EventSpace = IMercuryEventContract[string][string]
-
-export type OnFunctionHandler<E extends EventSpace> = (
-	data: IMercuryOnOptions<E>
-) => void
-export type OnPromiseHandler<
-	EventSpace extends IMercuryEventContract[string][string]
-> = (data: IMercuryOnOptions<EventSpace>) => Promise<void>
-export type OnErrorHandler = (options: {
-	code: string
-	data: IMercuryOnOptions<EventSpace>
-}) => Promise<void>
-export type OnHandler<E extends EventSpace> =
-	| OnFunctionHandler<E>
-	| OnPromiseHandler<E>
-export type OnConnectPromiseHandler = () => Promise<void>
-export type OnConnectFunctionHandler = () => void
-export type OnConnectHandler =
-	| OnConnectPromiseHandler
-	| OnConnectFunctionHandler
-
-export interface IOnData {
+export interface IOnData<TPayload = Record<string, any>> {
 	/** The event name that is being triggered */
 	eventName: string
 
@@ -87,5 +79,35 @@ export interface IOnData {
 	}
 
 	/** The data sent with this event */
-	payload: Record<string, any>
+	payload: TPayload
 }
+
+// .on Handlers
+export type OnFunctionHandler<E extends EventSpace> = (
+	data: IOnData<E['payload']>
+) => void
+export type OnPromiseHandler<E extends EventSpace> = (
+	data: IOnData<E['payload']>
+) => Promise<void>
+
+export type OnHandler<E extends EventSpace> =
+	| OnFunctionHandler<E>
+	| OnPromiseHandler<E>
+
+// Adapter on options
+export interface IMercuryAdapterOnOptions<
+	EventSpace extends IMercuryEventContract[string][string]
+> extends IMercuryOnOptions<EventSpace> {
+	credentials?: MercuryAuth
+}
+
+export type OnErrorHandler = (options: {
+	code: string
+	data: IMercuryOnOptions<EventSpace>
+}) => Promise<void>
+
+export type OnConnectPromiseHandler = () => Promise<void>
+export type OnConnectFunctionHandler = () => void
+export type OnConnectHandler =
+	| OnConnectPromiseHandler
+	| OnConnectFunctionHandler
