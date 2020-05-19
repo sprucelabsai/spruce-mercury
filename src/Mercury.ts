@@ -21,27 +21,7 @@ export interface IOnData {
 	payload: Record<string, any>
 }
 
-export interface IMercuryGQLBody<TBody = Record<string, any>> {
-	data: TBody
-	extensions: {
-		queryCost: number
-		requestMS: number
-		warnings: Record<string, any>[]
-	}
-}
 
-export type TOnFunctionHandler = (data: IMercuryOnOptions) => void
-export type TOnPromiseHandler = (data: IMercuryOnOptions) => Promise<void>
-export type TOnErrorHandler = (options: {
-	code: string
-	data: IMercuryOnOptions
-}) => Promise<void>
-export type TOnHandler = TOnFunctionHandler | TOnPromiseHandler
-export type TOnConnectPromiseHandler = () => Promise<void>
-export type TOnConnectFunctionHandler = () => void
-export type TOnConnectHandler =
-	| TOnConnectPromiseHandler
-	| TOnConnectFunctionHandler
 
 export enum MercuryAdapterKind {
 	// eslint-disable-next-line spruce/prefer-pascal-case-enums
@@ -89,29 +69,6 @@ export enum MercuryRole {
 	Anonymous = 'anonymous'
 }
 
-export interface IMercuryOnOptions {
-	/** Whether this handler will provide a respone to the event. */
-	respond?: boolean
-	/** The event to subscribe to */
-	eventName: string
-	/** The scope of the data to get back */
-	scope: MercurySubscriptionScope
-	/** A custom UUID for this event. If not provided, one will be generated */
-	eventId?: string
-	/** The organization id where the event is triggered */
-	organizationId?: string | null
-	/** The location id where the event is triggered. If passed, organizationId should also be set. */
-	locationId?: string | null
-	/** The user id who is triggering this event */
-	userId?: string | null
-	payload?: Record<string, any>
-	responses?: Record<string, any>[]
-}
-
-export interface IMercuryAdapterOnOptions extends IMercuryOnOptions {
-	credentials?: MercuryAuth
-}
-
 export interface IMercuryEmitOptions<TPayload = Record<string, any>> {
 	eventId?: string
 	eventName: string
@@ -149,27 +106,51 @@ export interface IMercuryConnectOptions {
 	useMock?: boolean
 }
 
-/** The scope of the data in a subscription */
-export enum MercurySubscriptionScope {
-	/** Anonymous (eventName only): Receives this event across all organizations and locations */
-	AnonymousGlobal = 'anonymousGlobal',
-	/** Anonymous (eventName only): Receives this event across an entire organization including all locations in the organization. */
-	AnonymousOrganization = 'anonymousOrganization',
-	/** Anonymous (eventName only): Receives this event across all organizations and locations */
-	AnonymousLocation = 'anonymousLocation',
-	/** Anonymous (eventName only): Receives this event for a user */
-	AnonymousUser = 'anonymousUser',
-	/** Receives this event across all organizations and locations */
-	Global = 'global',
-	/** Receives this event across an entire organization including all locations in the organization. */
-	Organization = 'organization',
-	/** Receives this event across all organizations and locations */
-	Location = 'location',
-	/** Receives this event for a user */
-	User = 'user'
+
+
+// export interface IMercuryEventContract {
+// 	[namespace: string]: {
+// 		[eventName: string]: {
+// 			body: Record<string, any>
+// 			payload: Record<string, any>
+// 		}
+// 	}
+// }
+
+
+// export interface ITestContract extends IMercuryEventContract {
+// 	core: {
+// 		didEnter: {
+// 			name: string
+// 			body: {
+// 				blah: string
+// 			}
+// 			payload: {
+// 				somethingElse: string
+// 			}
+// 		}
+// 	}
+// }
+
+export interface IMercuryEmitter<EventContract extends IMercuryEventContract> {
+	emit<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(
+		options: { namespace: Namespace; eventName: EventName },
+		payload: EventSpace['payload'],
+		handler?: TOnHandler<EventSpace>
+	): Promise<{
+		responses: {
+			// payload: EventContract[Namespace][EventName]['body']
+			payload: EventSpace["body"]
+		}[]
+	}>
 }
 
-export class Mercury {
+export class Mercury<EventContract extends IMercuryEventContract>
+	implements IMercuryEmitter<EventContract> {
 	public logLevel = 'warn'
 	public connectionOptions?: IMercuryConnectOptions
 	public get isConnected(): boolean {
@@ -247,12 +228,27 @@ export class Mercury {
 	}
 
 	/** Emit an event and set handler for responses */
-	public async emit<TPayload = Record<string, any>, TBody = any>(
-		options: IMercuryEmitOptions<TPayload>,
-		handler?: TOnHandler
+	// public async emit<TPayload = Record<string, any>, TBody = any>(
+	// 	options: IMercuryEmitOptions<TPayload>,
+	// 	handler?: TOnHandler
+	// ): Promise<{
+	// 	responses: {
+	// 		payload: TBody
+	// 	}[]
+	// }> {
+
+	public async emit<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(
+		options: { namespace: Namespace; eventName: EventName },
+		payload: EventSpace['payload'],
+		handler?: TOnHandler<EventSpace>
 	): Promise<{
 		responses: {
-			payload: TBody
+			// payload: EventContract[Namespace][EventName]['body']
+			payload: any
 		}[]
 	}> {
 		await this.awaitConnection()
@@ -275,7 +271,8 @@ export class Mercury {
 			this.eventHandlers[eventId].onResponse = [handler]
 		}
 		this.adapter.emit({
-			...options,
+			// ...options,
+			eventName,
 			eventId,
 			credentials: this.credentials
 		})
