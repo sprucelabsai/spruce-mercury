@@ -1,5 +1,4 @@
 import log from '../lib/log'
-import { MercuryAdapter } from '../MercuryAdapter'
 import {
 	TOnPromiseHandler,
 	TOnConnectFunctionHandler,
@@ -7,6 +6,7 @@ import {
 	IMercuryAdapterOnOptions,
 	TOnErrorHandler
 } from '../Mercury'
+import { MercuryAdapter } from '../MercuryAdapter'
 
 export interface IMercuryAdapterMockOptions {}
 

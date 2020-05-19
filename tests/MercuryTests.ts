@@ -1,6 +1,6 @@
 import { assert } from 'chai'
-import Base from './Base'
 import { Mercury } from '../src/Mercury'
+import Base from './Base'
 
 class MercuryTests extends Base {
 	public setup() {

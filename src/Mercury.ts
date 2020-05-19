@@ -47,12 +47,17 @@ export interface IMercuryConnectOptions {
 	useMock?: boolean
 }
 
-interface IEventHandlers {
+interface IEventHandlers<
+	EventContract extends IMercuryEventContract = IMercuryEventContract,
+	Namespace extends keyof EventContract = any,
+	EventName extends keyof EventContract[Namespace] = any,
+	EventSpace extends EventContract[Namespace][EventName] = any
+> {
 	[eventName: string]: {
 		// TODO: Can these be strongly typed?
-		onFinished: OnHandler<any>[]
-		onError: OnHandler<any>[]
-		onResponse: OnHandler<any>[]
+		onFinished: OnHandler<EventContract, Namespace, EventName, EventSpace>[]
+		onError: OnHandler<EventContract, Namespace, EventName, EventSpace>[]
+		onResponse: OnHandler<EventContract, Namespace, EventName, EventSpace>[]
 	}
 }
 
@@ -67,7 +72,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 	private clientOnConnect?: OnConnectHandler
 	private clientOnDisconnect?: OnConnectHandler
-	private adapter?: MercuryAdapter
+	private adapter?: MercuryAdapter<EventContract>
 	private eventHandlers: IEventHandlers = {}
 	private credentials?: MercuryAuth
 
@@ -104,7 +109,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		EventSpace extends EventContract[Namespace][EventName]
 	>(
 		options: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>,
-		handler: OnHandler<EventSpace>
+		handler: OnHandler<EventContract, Namespace, EventName, EventSpace>
 	): void {
 		if (!this.adapter) {
 			log.debug('Mercury: Unable to set .on() event because no adapter is set')
@@ -164,7 +169,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 			EventName,
 			EventSpace
 		>,
-		handler?: OnHandler<EventSpace>
+		handler?: OnHandler<EventContract, Namespace, EventName, EventSpace>
 	): Promise<{
 		responses: {
 			payload: EventSpace['body']
@@ -506,7 +511,10 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract[Namespace],
 		EventSpace extends EventContract[Namespace][EventName]
-	>(handler: OnHandler<EventSpace>, code: string) {
+	>(
+		handler: OnHandler<EventContract, Namespace, EventName, EventSpace>,
+		code: string
+	) {
 		// Check if the handler is a promise
 		const objToCheck = handler as any
 
@@ -530,7 +538,10 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract[Namespace],
 		EventSpace extends EventContract[Namespace][EventName]
-	>(handler: OnHandler<EventSpace>, data?: any) {
+	>(
+		handler: OnHandler<EventContract, Namespace, EventName, EventSpace>,
+		data?: any
+	) {
 		// Check if the handler is a promise
 		const objToCheck = handler as any
 

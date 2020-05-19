@@ -1,25 +1,51 @@
 import {
-	TOnPromiseHandler,
-	IMercuryAdapterOnOptions,
 	IMercuryEmitOptions,
-	TOnConnectFunctionHandler,
-	TOnErrorHandler
-} from './Mercury'
+	OnPromiseHandler,
+	OnErrorHandler,
+	OnConnectFunctionHandler,
+	OnDisconnectFunctionHandler,
+	IMercuryEventContract,
+	IMercuryAdapterOnOptions
+} from './types/mercuryEvents'
 
-export abstract class MercuryAdapter {
+export abstract class MercuryAdapter<
+	EventContract extends IMercuryEventContract
+> {
 	public abstract isConnected: boolean
 
 	public abstract init(
 		options: Record<string, any>,
-		eventHandler: TOnPromiseHandler,
-		errorHandler: TOnErrorHandler,
-		onConnect: TOnConnectFunctionHandler,
-		onDisconnect: TOnConnectFunctionHandler
+		eventHandler: OnPromiseHandler<IMercuryEventContract, any, any, any>,
+		errorHandler: OnErrorHandler,
+		onConnect: OnConnectFunctionHandler,
+		onDisconnect: OnDisconnectFunctionHandler
 	): void
 
-	public abstract on(options: IMercuryAdapterOnOptions): void
+	public abstract on<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(
+		options: IMercuryAdapterOnOptions<
+			EventContract,
+			Namespace,
+			EventName,
+			EventSpace
+		>
+	): void
 
-	public abstract emit(options: IMercuryEmitOptions): void
+	public abstract emit<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(
+		options: IMercuryEmitOptions<
+			EventContract,
+			Namespace,
+			EventName,
+			EventSpace
+		>
+	): void
 
 	/** Disconnects the underlying connection */
 	public abstract disconnect(): void

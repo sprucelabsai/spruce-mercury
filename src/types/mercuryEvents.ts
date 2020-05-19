@@ -83,27 +83,45 @@ export interface IOnData<TPayload = Record<string, any>> {
 }
 
 // .on Handlers
-export type OnFunctionHandler<E extends EventSpace> = (
-	data: IOnData<E['payload']>
+export type OnFunctionHandler<
+	EventContract extends IMercuryEventContract,
+	Namespace extends keyof EventContract,
+	EventName extends keyof EventContract[Namespace],
+	EventSpace extends EventContract[Namespace][EventName]
+> = (
+	data: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
 ) => void
-export type OnPromiseHandler<E extends EventSpace> = (
-	data: IOnData<E['payload']>
+export type OnPromiseHandler<
+	EventContract extends IMercuryEventContract,
+	Namespace extends keyof EventContract,
+	EventName extends keyof EventContract[Namespace],
+	EventSpace extends EventContract[Namespace][EventName]
+> = (
+	data: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
 ) => Promise<void>
 
-export type OnHandler<E extends EventSpace> =
-	| OnFunctionHandler<E>
-	| OnPromiseHandler<E>
+export type OnHandler<
+	EventContract extends IMercuryEventContract,
+	Namespace extends keyof EventContract,
+	EventName extends keyof EventContract[Namespace],
+	EventSpace extends EventContract[Namespace][EventName]
+> =
+	| OnFunctionHandler<EventContract, Namespace, EventName, EventSpace>
+	| OnPromiseHandler<EventContract, Namespace, EventName, EventSpace>
 
 // Adapter on options
 export interface IMercuryAdapterOnOptions<
-	EventSpace extends IMercuryEventContract[string][string]
-> extends IMercuryOnOptions<EventSpace> {
+	EventContract extends IMercuryEventContract,
+	Namespace extends keyof EventContract,
+	EventName extends keyof EventContract[Namespace],
+	EventSpace extends EventContract[Namespace][EventName]
+> extends IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace> {
 	credentials?: MercuryAuth
 }
 
 export type OnErrorHandler = (options: {
 	code: string
-	data: IMercuryOnOptions<EventSpace>
+	data: any
 }) => Promise<void>
 
 export type OnConnectPromiseHandler = () => Promise<void>
@@ -111,3 +129,9 @@ export type OnConnectFunctionHandler = () => void
 export type OnConnectHandler =
 	| OnConnectPromiseHandler
 	| OnConnectFunctionHandler
+
+export type OnDisconnectPromiseHandler = () => Promise<void>
+export type OnDisconnectFunctionHandler = () => void
+export type OnDisconnectHandler =
+	| OnDisconnectPromiseHandler
+	| OnDisconnectFunctionHandler

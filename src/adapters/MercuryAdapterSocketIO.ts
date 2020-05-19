@@ -6,9 +6,9 @@ import {
 	OnConnectFunctionHandler,
 	OnErrorHandler,
 	IMercuryAdapterOnOptions,
-	IMercuryEventContract
+	IMercuryEventContract,
+	IMercuryEmitOptions
 } from '../types/mercuryEvents'
-import { IMercuryEmitOptions } from '../Mercury'
 
 // Import correct version depending on whether we're in browser or node.
 // Fun gotcha: We can't use require() syntax in browser or it won't compile properly
@@ -27,18 +27,18 @@ export interface IMercuryAdapterSocketIOOptions {
 
 export default class MercuryAdapterSocketIO<
 	EventContract extends IMercuryEventContract
-> implements MercuryAdapter {
+> implements MercuryAdapter<EventContract> {
 	public isConnected = false
 	private socket?: any
 	private options!: IMercuryAdapterSocketIOOptions
-	private eventHandler!: OnPromiseHandler
+	private eventHandler!: OnPromiseHandler<IMercuryEventContract, any, any, any>
 	private errorHandler!: OnErrorHandler
 	private onConnect!: OnConnectFunctionHandler
 	private onDisconnect!: OnConnectFunctionHandler
 
 	public init(
 		options: IMercuryAdapterSocketIOOptions,
-		eventHandler: OnPromiseHandler,
+		eventHandler: OnPromiseHandler<IMercuryEventContract, any, any, any>,
 		errorHandler: OnErrorHandler,
 		onConnect: OnConnectFunctionHandler,
 		onDisconnect: OnConnectFunctionHandler
@@ -52,7 +52,18 @@ export default class MercuryAdapterSocketIO<
 		this.connect()
 	}
 
-	public on(options: IMercuryAdapterOnOptions): void {
+	public on<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(
+		options: IMercuryAdapterOnOptions<
+			EventContract,
+			Namespace,
+			EventName,
+			EventSpace
+		>
+	): void {
 		if (this.isConnected) {
 			this.socket.emit('subscribe', options)
 		} else {
