@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import BaseTest, { test, assert } from '@sprucelabs/test'
-import { Mercury, IMercuryEventContract } from './Mercury'
+import { Mercury } from './Mercury'
+import { IMercuryEventContract } from './types/mercuryEvents'
 
 // const eventContract = {
 // 	core: {
@@ -70,7 +71,15 @@ export default class MercuryTest extends BaseTest {
 		// 		console.log(body)
 		// 	}
 		// )
-		mercury.emit({ namespace: 'core', eventName: 'didLeave' })
+		mercury.on
+
+		mercury.emit({
+			namespace: 'core',
+			eventName: 'didEnter',
+			payload: {
+				somethingElse: ''
+			}
+		})
 
 		// mercury.emit(SpruceEvents.core.didEnter)
 

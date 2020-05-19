@@ -1,3 +1,6 @@
+import { MercuryAuth } from './auth'
+import { MercurySubscriptionScope } from './subscriptions'
+
 export interface IMercuryEventContract {
 	[namespace: string]: {
 		[eventName: string]: {
@@ -18,12 +21,16 @@ export interface IMercuryGQLBody<TBody = Record<string, any>> {
 }
 
 export interface IMercuryOnOptions<
+	Namespace extends keyof IMercuryEventContract,
+	EventName extends keyof IMercuryEventContract[Namespace],
 	EventSpace extends IMercuryEventContract[string][string]
 > {
 	/** Whether this handler will provide a respone to the event. */
 	respond?: boolean
+	/** The event namespace */
+	namespace: Namespace
 	/** The event to subscribe to */
-	eventName: EventSpace['name']
+	eventName: EventName
 	/** The scope of the data to get back */
 	scope: MercurySubscriptionScope
 	/** A custom UUID for this event. If not provided, one will be generated */
@@ -46,21 +53,39 @@ export interface IMercuryAdapterOnOptions<
 
 export type EventSpace = IMercuryEventContract[string][string]
 
-export type TOnFunctionHandler<E extends EventSpace> = (
+export type OnFunctionHandler<E extends EventSpace> = (
 	data: IMercuryOnOptions<E>
 ) => void
-export type TOnPromiseHandler<
+export type OnPromiseHandler<
 	EventSpace extends IMercuryEventContract[string][string]
 > = (data: IMercuryOnOptions<EventSpace>) => Promise<void>
-export type TOnErrorHandler = (options: {
+export type OnErrorHandler = (options: {
 	code: string
 	data: IMercuryOnOptions<EventSpace>
 }) => Promise<void>
-export type TOnHandler<E extends EventSpace> =
-	| TOnFunctionHandler<E>
-	| TOnPromiseHandler<E>
-export type TOnConnectPromiseHandler = () => Promise<void>
-export type TOnConnectFunctionHandler = () => void
-export type TOnConnectHandler =
-	| TOnConnectPromiseHandler
-	| TOnConnectFunctionHandler
+export type OnHandler<E extends EventSpace> =
+	| OnFunctionHandler<E>
+	| OnPromiseHandler<E>
+export type OnConnectPromiseHandler = () => Promise<void>
+export type OnConnectFunctionHandler = () => void
+export type OnConnectHandler =
+	| OnConnectPromiseHandler
+	| OnConnectFunctionHandler
+
+export interface IOnData {
+	/** The event name that is being triggered */
+	eventName: string
+
+	/** The unique id for this event */
+	eventId: string
+
+	/** The skill that sent this data */
+	skill: {
+		id: string
+		name: string
+		slug: string
+	}
+
+	/** The data sent with this event */
+	payload: Record<string, any>
+}

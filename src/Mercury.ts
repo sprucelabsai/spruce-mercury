@@ -1,27 +1,14 @@
+import MercuryAdapterMock from './adapters/MercuryAdapterMock'
+import MercuryAdapterSocketIO from './adapters/MercuryAdapterSocketIO'
 import log from './lib/log'
 import { MercuryAdapter } from './MercuryAdapter'
-import MercuryAdapterSocketIO from './adapters/MercuryAdapterSocketIO'
-import MercuryAdapterMock from './adapters/MercuryAdapterMock'
-
-export interface IOnData {
-	/** The event name that is being triggered */
-	eventName: string
-
-	/** The unique id for this event */
-	eventId: string
-
-	/** The skill that sent this data */
-	skill: {
-		id: string
-		name: string
-		slug: string
-	}
-
-	/** The data sent with this event */
-	payload: Record<string, any>
-}
-
-
+import { MercuryAuth } from './types/auth'
+import {
+	IMercuryOnOptions,
+	IMercuryEventContract,
+	OnHandler,
+	OnConnectHandler
+} from './types/mercuryEvents'
 
 export enum MercuryAdapterKind {
 	// eslint-disable-next-line spruce/prefer-pascal-case-enums
@@ -31,53 +18,15 @@ export enum MercuryAdapterKind {
 
 export interface IMercuryError {}
 
-/** Authenticate with Mercury as a User */
-export interface IMercuryAuthUser {
-	/** The user's JWT token */
-	token: string
-}
-/** Authenticate with Mercury as a Skill */
-export interface IMercuryAuthSkill {
-	/** Your skill's ID */
-	id: string
-
-	/** Your skill's API key */
-	apiKey: string
-}
-
-/** Authenticate with Mercury as a user */
-export interface IMercuryAuthUsernamePassword {
-	/** Your skill's ID */
-	username: string
-
-	/** Your skill's API key */
-	password: string
-}
-
-export interface IAuthStatus {
-	isAuthenticated: boolean
-}
-
-export type MercuryAuth =
-	| IMercuryAuthUser
-	| IMercuryAuthSkill
-	| IMercuryAuthUsernamePassword
-
-export enum MercuryRole {
-	User = 'user',
-	Skill = 'skill',
-	Anonymous = 'anonymous'
-}
-
-export interface IMercuryEmitOptions<TPayload = Record<string, any>> {
-	eventId?: string
-	eventName: string
-	organizationId?: string | null
-	locationId?: string | null
-	userId?: string | null
-	payload?: TPayload
-	credentials?: MercuryAuth
-}
+// export interface IMercuryEmitOptions<TPayload = Record<string, any>> {
+// 	eventId?: string
+// 	eventName: string
+// 	organizationId?: string | null
+// 	locationId?: string | null
+// 	userId?: string | null
+// 	payload?: TPayload
+// 	credentials?: MercuryAuth
+// }
 
 export interface IMercuryConnectOptions {
 	/** The URL for the Spruce API */
@@ -92,7 +41,7 @@ export interface IMercuryConnectOptions {
 	 *
 	 * This function will also be called in case of a reconnect
 	 */
-	onConnect?: TOnConnectHandler
+	onConnect?: OnConnectHandler
 
 	/**
 	 * Callback function to execute when Mercury has disconnected.
@@ -100,13 +49,11 @@ export interface IMercuryConnectOptions {
 	 * This callback usually doesn't need to be implemented.
 	 * Mercury will handle cleanup of callback functions created in onConnect
 	 */
-	onDisconnect?: TOnConnectHandler
+	onDisconnect?: OnConnectHandler
 
 	/** When set to true, a mock instance of mercury that does not connect to a real api is used. Use this option in your unit tests. */
 	useMock?: boolean
 }
-
-
 
 // export interface IMercuryEventContract {
 // 	[namespace: string]: {
@@ -116,7 +63,6 @@ export interface IMercuryConnectOptions {
 // 		}
 // 	}
 // }
-
 
 // export interface ITestContract extends IMercuryEventContract {
 // 	core: {
@@ -132,25 +78,41 @@ export interface IMercuryConnectOptions {
 // 	}
 // }
 
-export interface IMercuryEmitter<EventContract extends IMercuryEventContract> {
-	emit<
-		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
-	>(
-		options: { namespace: Namespace; eventName: EventName },
-		payload: EventSpace['payload'],
-		handler?: TOnHandler<EventSpace>
-	): Promise<{
-		responses: {
-			// payload: EventContract[Namespace][EventName]['body']
-			payload: EventSpace["body"]
-		}[]
-	}>
+interface IEventHandlers {
+	[eventName: string]: {
+		// TODO: Can these be strongly typed?
+		onFinished: OnHandler<any>[]
+		onError: OnHandler<any>[]
+		onResponse: OnHandler<any>[]
+	}
 }
 
-export class Mercury<EventContract extends IMercuryEventContract>
-	implements IMercuryEmitter<EventContract> {
+// export interface IMercuryEmitter<EventContract extends IMercuryEventContract> {
+// 	emit<
+// 		Namespace extends keyof EventContract,
+// 		EventName extends keyof EventContract[Namespace],
+// 		EventSpace extends EventContract[Namespace][EventName]
+// 	>(
+// 		options: {
+// 			namespace: Namespace
+// 			eventName: EventName
+// 			eventId?: string
+// 			organizationId?: string | null
+// 			locationId?: string | null
+// 			userId?: string | null
+// 			payload?: EventSpace['payload']
+// 			credentials?: MercuryAuth
+// 		},
+// 		handler?: OnHandler<EventSpace>
+// 	): Promise<{
+// 		responses: {
+// 			// payload: EventContract[Namespace][EventName]['body']
+// 			payload: EventSpace['body']
+// 		}[]
+// 	}>
+// }
+
+export class Mercury<EventContract extends IMercuryEventContract> {
 	public logLevel = 'warn'
 	public connectionOptions?: IMercuryConnectOptions
 	public get isConnected(): boolean {
@@ -159,17 +121,10 @@ export class Mercury<EventContract extends IMercuryEventContract>
 		}
 		return false
 	}
-	private clientOnConnect?: TOnConnectHandler
-	private clientOnDisconnect?: TOnConnectHandler
+	private clientOnConnect?: OnConnectHandler
+	private clientOnDisconnect?: OnConnectHandler
 	private adapter?: MercuryAdapter
-	private eventHandlers: Record<
-		string,
-		{
-			onFinished: TOnHandler[]
-			onError: TOnHandler[]
-			onResponse: TOnHandler[]
-		}
-	> = {}
+	private eventHandlers: IEventHandlers = {}
 	private credentials?: MercuryAuth
 
 	public constructor(options?: IMercuryConnectOptions) {
@@ -199,7 +154,14 @@ export class Mercury<EventContract extends IMercuryEventContract>
 	}
 
 	/** Subscribe to events */
-	public on(options: IMercuryOnOptions, handler: TOnHandler): void {
+	public on<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(
+		options: IMercuryOnOptions<Namespace, EventName, EventSpace>,
+		handler: OnHandler<EventSpace>
+	): void {
 		if (!this.adapter) {
 			log.debug('Mercury: Unable to set .on() event because no adapter is set')
 			// Retry setting the subscription
@@ -230,7 +192,7 @@ export class Mercury<EventContract extends IMercuryEventContract>
 	/** Emit an event and set handler for responses */
 	// public async emit<TPayload = Record<string, any>, TBody = any>(
 	// 	options: IMercuryEmitOptions<TPayload>,
-	// 	handler?: TOnHandler
+	// 	handler?: OnHandler
 	// ): Promise<{
 	// 	responses: {
 	// 		payload: TBody
@@ -242,13 +204,20 @@ export class Mercury<EventContract extends IMercuryEventContract>
 		EventName extends keyof EventContract[Namespace],
 		EventSpace extends EventContract[Namespace][EventName]
 	>(
-		options: { namespace: Namespace; eventName: EventName },
-		payload: EventSpace['payload'],
-		handler?: TOnHandler<EventSpace>
+		options: {
+			namespace: Namespace
+			eventName: EventName
+			eventId?: string
+			organizationId?: string | null
+			locationId?: string | null
+			userId?: string | null
+			payload?: EventSpace['payload']
+			credentials?: MercuryAuth
+		},
+		handler?: OnHandler<EventSpace>
 	): Promise<{
 		responses: {
-			// payload: EventContract[Namespace][EventName]['body']
-			payload: any
+			payload: EventSpace['body']
 		}[]
 	}> {
 		await this.awaitConnection()
@@ -259,7 +228,7 @@ export class Mercury<EventContract extends IMercuryEventContract>
 			return
 		}
 
-		const eventId = this.uuid()
+		const eventId = options.eventId ?? this.uuid()
 		if (!this.eventHandlers[eventId]) {
 			this.eventHandlers[eventId] = {
 				onFinished: [],
@@ -271,8 +240,7 @@ export class Mercury<EventContract extends IMercuryEventContract>
 			this.eventHandlers[eventId].onResponse = [handler]
 		}
 		this.adapter.emit({
-			// ...options,
-			eventName,
+			...options,
 			eventId,
 			credentials: this.credentials
 		})
@@ -396,7 +364,11 @@ export class Mercury<EventContract extends IMercuryEventContract>
 	}
 
 	/** Used for keepting track of callbacks in this.eventHandlers */
-	private getEventHandlerKey(options: IMercuryOnOptions): string {
+	private getEventHandlerKey<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(options: IMercuryOnOptions<EventSpace>): string {
 		const { eventName, organizationId, locationId, userId } = options
 
 		let key = `events-${eventName}`
@@ -415,7 +387,11 @@ export class Mercury<EventContract extends IMercuryEventContract>
 	}
 
 	/** Used for determining which callbacks to execute from this.eventHandlers */
-	private getPossibleEventHandlerKeys(options: IMercuryOnOptions): string[] {
+	private getPossibleEventHandlerKeys<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(options: IMercuryOnOptions<EventSpace>): string[] {
 		const { eventName, userId, locationId, organizationId } = options
 		const base = `events-${eventName}`
 		const possibleHandlerKeys: string[] = []
@@ -466,7 +442,15 @@ export class Mercury<EventContract extends IMercuryEventContract>
 	}
 
 	/** Called when the adapter detects an event. This function then looks to see if there are any callbacks for that event to invoke */
-	private async handleEvent(options: IMercuryOnOptions) {
+	private async handleEvent<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(
+		options: IMercuryOnOptions<
+			EventContract[keyof EventContract][keyof EventContract[keyof EventContract]]
+		>
+	) {
 		log.debug('*** Mercury.handleEvent')
 		log.debug('Mercury: handleEvent', {
 			options
@@ -513,10 +497,11 @@ export class Mercury<EventContract extends IMercuryEventContract>
 	}
 
 	/** Called when the adapter detects an error */
-	private async handleError(options: {
-		code: string
-		data: IMercuryOnOptions
-	}) {
+	private async handleError<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(options: { code: string; data: IMercuryOnOptions<EventSpace> }) {
 		const { code, data } = options
 		log.debug('*** Mercury.handleError')
 		log.debug('Mercury: handleError', {
@@ -543,7 +528,11 @@ export class Mercury<EventContract extends IMercuryEventContract>
 	}
 
 	/** Executes either a function or promise callback by detecting the type */
-	private executeErrorHandler(handler: TOnHandler, code: string) {
+	private executeErrorHandler<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(handler: OnHandler<EventSpace>, code: string) {
 		// Check if the handler is a promise
 		const objToCheck = handler as any
 
@@ -563,7 +552,11 @@ export class Mercury<EventContract extends IMercuryEventContract>
 	}
 
 	/** Executes either a function or promise callback by detecting the type */
-	private executeHandler(handler: TOnHandler, data?: any) {
+	private executeHandler<
+		Namespace extends keyof EventContract,
+		EventName extends keyof EventContract[Namespace],
+		EventSpace extends EventContract[Namespace][EventName]
+	>(handler: OnHandler<EventSpace>, data?: any) {
 		// Check if the handler is a promise
 		const objToCheck = handler as any
 
