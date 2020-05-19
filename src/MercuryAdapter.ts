@@ -15,37 +15,23 @@ export abstract class MercuryAdapter<
 
 	public abstract init(
 		options: Record<string, any>,
-		eventHandler: OnPromiseHandler<IMercuryEventContract, any, any, any>,
+		eventHandler: OnPromiseHandler<IMercuryEventContract, any, any>,
 		errorHandler: OnErrorHandler,
 		onConnect: OnConnectFunctionHandler,
 		onDisconnect: OnDisconnectFunctionHandler
 	): void
 
 	public abstract on<
-		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
 	>(
-		options: IMercuryAdapterOnOptions<
-			EventContract,
-			Namespace,
-			EventName,
-			EventSpace
-		>
+		options: IMercuryAdapterOnOptions<EventContract, EventName, EventSpace>
 	): void
 
 	public abstract emit<
-		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
-	>(
-		options: IMercuryEmitOptions<
-			EventContract,
-			Namespace,
-			EventName,
-			EventSpace
-		>
-	): void
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
+	>(options: IMercuryEmitOptions<EventContract, EventName, EventSpace>): void
 
 	/** Disconnects the underlying connection */
 	public abstract disconnect(): void

@@ -31,14 +31,14 @@ export default class MercuryAdapterSocketIO<
 	public isConnected = false
 	private socket?: any
 	private options!: IMercuryAdapterSocketIOOptions
-	private eventHandler!: OnPromiseHandler<IMercuryEventContract, any, any, any>
+	private eventHandler!: OnPromiseHandler<IMercuryEventContract, any, any>
 	private errorHandler!: OnErrorHandler
 	private onConnect!: OnConnectFunctionHandler
 	private onDisconnect!: OnConnectFunctionHandler
 
 	public init(
 		options: IMercuryAdapterSocketIOOptions,
-		eventHandler: OnPromiseHandler<IMercuryEventContract, any, any, any>,
+		eventHandler: OnPromiseHandler<IMercuryEventContract, any, any>,
 		errorHandler: OnErrorHandler,
 		onConnect: OnConnectFunctionHandler,
 		onDisconnect: OnConnectFunctionHandler
@@ -53,16 +53,10 @@ export default class MercuryAdapterSocketIO<
 	}
 
 	public on<
-		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
 	>(
-		options: IMercuryAdapterOnOptions<
-			EventContract,
-			Namespace,
-			EventName,
-			EventSpace
-		>
+		options: IMercuryAdapterOnOptions<EventContract, EventName, EventSpace>
 	): void {
 		if (this.isConnected) {
 			this.socket.emit('subscribe', options)
@@ -77,17 +71,9 @@ export default class MercuryAdapterSocketIO<
 	}
 
 	public emit<
-		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
-	>(
-		options: IMercuryEmitOptions<
-			EventContract,
-			Namespace,
-			EventName,
-			EventSpace
-		>
-	) {
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
+	>(options: IMercuryEmitOptions<EventContract, EventName, EventSpace>) {
 		if (!this.socket) {
 			log.warn('Can not emit. SocketIO not connected.')
 			return

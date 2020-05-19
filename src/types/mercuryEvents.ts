@@ -2,16 +2,13 @@ import { MercuryAuth } from './auth'
 import { MercurySubscriptionScope } from './subscriptions'
 
 export interface IMercuryEventContract {
-	[namespace: string]: {
-		[eventName: string]: {
-			name: string
-			body?: Record<string, any>
-			payload?: Record<string, any>
-		}
+	[eventName: string]: {
+		body?: Record<string, any>
+		payload?: Record<string, any>
 	}
 }
 
-export type EventSpace = IMercuryEventContract[string][string]
+export type EventSpace = IMercuryEventContract[string]
 
 export interface IMercuryGQLBody<TBody = Record<string, any>> {
 	data: TBody
@@ -24,11 +21,9 @@ export interface IMercuryGQLBody<TBody = Record<string, any>> {
 
 export interface IMercuryEmitOptions<
 	EventContract extends IMercuryEventContract,
-	Namespace extends keyof EventContract,
-	EventName extends keyof EventContract[Namespace],
-	EventSpace extends EventContract[Namespace][EventName]
+	EventName extends keyof EventContract,
+	EventSpace extends EventContract[EventName]
 > {
-	namespace: Namespace
 	eventName: EventName
 	eventId?: string
 	organizationId?: string | null
@@ -40,14 +35,11 @@ export interface IMercuryEmitOptions<
 
 export interface IMercuryOnOptions<
 	EventContract extends IMercuryEventContract,
-	Namespace extends keyof EventContract,
-	EventName extends keyof EventContract[Namespace],
-	EventSpace extends EventContract[Namespace][EventName]
+	EventName extends keyof EventContract,
+	EventSpace extends EventContract[EventName]
 > {
 	/** Whether this handler will provide a respone to the event. */
 	respond?: boolean
-	/** The event namespace */
-	namespace: Namespace
 	/** The event to subscribe to */
 	eventName: EventName
 	/** The scope of the data to get back */
@@ -64,9 +56,13 @@ export interface IMercuryOnOptions<
 	responses?: EventSpace['body'][]
 }
 
-export interface IOnData<TPayload = Record<string, any>> {
+export interface IOnData<
+	EventContract extends IMercuryEventContract,
+	EventName extends keyof EventContract,
+	EventSpace extends EventContract[EventName]
+> {
 	/** The event name that is being triggered */
-	eventName: string
+	eventName: EventName
 
 	/** The unique id for this event */
 	eventId: string
@@ -79,43 +75,36 @@ export interface IOnData<TPayload = Record<string, any>> {
 	}
 
 	/** The data sent with this event */
-	payload: TPayload
+	payload: EventSpace['payload']
 }
 
 // .on Handlers
 export type OnFunctionHandler<
 	EventContract extends IMercuryEventContract,
-	Namespace extends keyof EventContract,
-	EventName extends keyof EventContract[Namespace],
-	EventSpace extends EventContract[Namespace][EventName]
-> = (
-	data: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
-) => void
+	EventName extends keyof EventContract,
+	EventSpace extends EventContract[EventName]
+> = (data: IOnData<EventContract, EventName, EventSpace>) => void
+
 export type OnPromiseHandler<
 	EventContract extends IMercuryEventContract,
-	Namespace extends keyof EventContract,
-	EventName extends keyof EventContract[Namespace],
-	EventSpace extends EventContract[Namespace][EventName]
-> = (
-	data: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
-) => Promise<void>
+	EventName extends keyof EventContract,
+	EventSpace extends EventContract[EventName]
+> = (data: IOnData<EventContract, EventName, EventSpace>) => Promise<void>
 
 export type OnHandler<
 	EventContract extends IMercuryEventContract,
-	Namespace extends keyof EventContract,
-	EventName extends keyof EventContract[Namespace],
-	EventSpace extends EventContract[Namespace][EventName]
+	EventName extends keyof EventContract,
+	EventSpace extends EventContract[EventName]
 > =
-	| OnFunctionHandler<EventContract, Namespace, EventName, EventSpace>
-	| OnPromiseHandler<EventContract, Namespace, EventName, EventSpace>
+	| OnFunctionHandler<EventContract, EventName, EventSpace>
+	| OnPromiseHandler<EventContract, EventName, EventSpace>
 
 // Adapter on options
 export interface IMercuryAdapterOnOptions<
 	EventContract extends IMercuryEventContract,
-	Namespace extends keyof EventContract,
-	EventName extends keyof EventContract[Namespace],
-	EventSpace extends EventContract[Namespace][EventName]
-> extends IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace> {
+	EventName extends keyof EventContract,
+	EventSpace extends EventContract[EventName]
+> extends IMercuryOnOptions<EventContract, EventName, EventSpace> {
 	credentials?: MercuryAuth
 }
 

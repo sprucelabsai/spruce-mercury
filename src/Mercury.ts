@@ -50,14 +50,14 @@ export interface IMercuryConnectOptions {
 interface IEventHandlers<
 	EventContract extends IMercuryEventContract = IMercuryEventContract,
 	Namespace extends keyof EventContract = any,
-	EventName extends keyof EventContract[Namespace] = any,
-	EventSpace extends EventContract[Namespace][EventName] = any
+	EventName extends keyof EventContract = any,
+	EventSpace extends EventContract[EventName] = any
 > {
 	[eventName: string]: {
 		// TODO: Can these be strongly typed?
-		onFinished: OnHandler<EventContract, Namespace, EventName, EventSpace>[]
-		onError: OnHandler<EventContract, Namespace, EventName, EventSpace>[]
-		onResponse: OnHandler<EventContract, Namespace, EventName, EventSpace>[]
+		onFinished: OnHandler<EventContract, EventName, EventSpace>[]
+		onError: OnHandler<EventContract, EventName, EventSpace>[]
+		onResponse: OnHandler<EventContract, EventName, EventSpace>[]
 	}
 }
 
@@ -104,12 +104,12 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 
 	/** Subscribe to events */
 	public on<
-		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
 	>(
-		options: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>,
-		handler: OnHandler<EventContract, Namespace, EventName, EventSpace>
+		options: IMercuryOnOptions<EventContract, EventName, EventSpace>,
+		// handler: OnHandler<EventContract, EventName, EventSpace>
+		handler: OnHandler<EventContract, EventName, EventSpace>
 	): void {
 		if (!this.adapter) {
 			log.debug('Mercury: Unable to set .on() event because no adapter is set')
@@ -149,9 +149,8 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	// }> {
 
 	public async emit<
-		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
 	>(
 		// options: {
 		// 	namespace: Namespace
@@ -163,13 +162,8 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		// 	payload?: EventSpace['payload']
 		// 	credentials?: MercuryAuth
 		// },
-		options: IMercuryEmitOptions<
-			EventContract,
-			Namespace,
-			EventName,
-			EventSpace
-		>,
-		handler?: OnHandler<EventContract, Namespace, EventName, EventSpace>
+		options: IMercuryEmitOptions<EventContract, EventName, EventSpace>,
+		handler?: OnHandler<EventContract, EventName, EventSpace>
 	): Promise<{
 		responses: {
 			payload: EventSpace['body']
@@ -321,11 +315,9 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	/** Used for keepting track of callbacks in this.eventHandlers */
 	private getEventHandlerKey<
 		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
-	>(
-		options: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
-	): string {
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
+	>(options: IMercuryOnOptions<EventContract, EventName, EventSpace>): string {
 		const { eventName, organizationId, locationId, userId } = options
 
 		let key = `events-${eventName}`
@@ -346,10 +338,10 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	/** Used for determining which callbacks to execute from this.eventHandlers */
 	private getPossibleEventHandlerKeys<
 		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
 	>(
-		options: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
+		options: IMercuryOnOptions<EventContract, EventName, EventSpace>
 	): string[] {
 		const { eventName, userId, locationId, organizationId } = options
 		const base = `events-${eventName}`
@@ -403,11 +395,9 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	/** Called when the adapter detects an event. This function then looks to see if there are any callbacks for that event to invoke */
 	private async handleEvent<
 		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
-	>(
-		options: IMercuryOnOptions<EventContract, Namespace, EventName, EventSpace>
-	) {
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
+	>(options: IMercuryOnOptions<EventContract, EventName, EventSpace>) {
 		log.debug('*** Mercury.handleEvent')
 		log.debug('Mercury: handleEvent', {
 			options
@@ -456,8 +446,8 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	/** Called when the adapter detects an error */
 	private async handleError<
 		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
 	>(options: {
 		code: string
 		data: {
@@ -509,12 +499,9 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	/** Executes either a function or promise callback by detecting the type */
 	private executeErrorHandler<
 		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
-	>(
-		handler: OnHandler<EventContract, Namespace, EventName, EventSpace>,
-		code: string
-	) {
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
+	>(handler: OnHandler<EventContract, EventName, EventSpace>, code: string) {
 		// Check if the handler is a promise
 		const objToCheck = handler as any
 
@@ -536,12 +523,9 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	/** Executes either a function or promise callback by detecting the type */
 	private executeHandler<
 		Namespace extends keyof EventContract,
-		EventName extends keyof EventContract[Namespace],
-		EventSpace extends EventContract[Namespace][EventName]
-	>(
-		handler: OnHandler<EventContract, Namespace, EventName, EventSpace>,
-		data?: any
-	) {
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
+	>(handler: OnHandler<EventContract, EventName, EventSpace>, data?: any) {
 		// Check if the handler is a promise
 		const objToCheck = handler as any
 

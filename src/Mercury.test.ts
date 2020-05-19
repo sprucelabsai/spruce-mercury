@@ -28,35 +28,47 @@ import { MercurySubscriptionScope } from './types/subscriptions'
 // 	// }
 // }
 
-const SpruceEvents = {
+// const SpruceEvents = {
+// 	core: {
+// 		didEnter: {
+// 			namespace: 'core',
+// 			eventName: 'didEnter'
+// 		},
+// 		didLeave: {
+// 			namespace: 'core',
+// 			eventName: 'didLeave'
+// 		}
+// 	}
+// } as const
+
+export const SpruceEvents = {
 	core: {
-		didEnter: {
-			namespace: 'core',
-			eventName: 'didEnter'
-		},
-		didLeave: {
-			namespace: 'core',
-			eventName: 'didLeave'
-		}
+		DidEnter: 'did-enter',
+		DidLeave: 'did-leave'
+	},
+	booking: {
+		GetAppointments: 'booking:get-appointments'
 	}
 } as const
 
 interface IMyEventContract extends IMercuryEventContract {
-	core: {
-		didEnter: {
-			name: string
-			body: {
-				blah: string
-			}
-			payload: {
-				somethingElse: string
-			}
+	'did-enter': {
+		payload: {
+			userId: string
+			enteredAt: string
 		}
-		didLeave: {
-			name: string
-			body: {
-				userId: string
-			}
+		body: {
+			somethingElse: string
+		}
+	}
+	'did-leave': {
+		body: {
+			userId: string
+		}
+	}
+	'booking:get-appointments': {
+		body: {
+			appointmentIds?: string[]
 		}
 	}
 }
@@ -74,23 +86,24 @@ export default class MercuryTest extends BaseTest {
 		// )
 		mercury.on(
 			{
-				namespace: 'core',
-				eventName: 'didEnter',
+				// eventName: 'did-enter',
+				// eventName: SpruceEvents.core.DidEnter,
+				eventName: SpruceEvents.core.DidEnter,
 				scope: MercurySubscriptionScope.AnonymousGlobal
 			},
 			options => {
-				console.log(options.payload.somethingElse)
-				console.log(options)
+				console.log(options.payload.blah)
 			}
 		)
 
-		mercury.emit({
-			namespace: 'core',
-			eventName: 'didEnter',
+		const result = await mercury.emit({
+			eventName: 'did-leave',
 			payload: {
 				somethingElse: ''
 			}
 		})
+
+		result.responses[0].payload.userId
 
 		// mercury.emit(SpruceEvents.core.didEnter)
 
