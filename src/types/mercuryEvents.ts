@@ -1,6 +1,7 @@
 import { MercuryAuth } from './auth'
 import { MercurySubscriptionScope } from './subscriptions'
 
+/** An event contract keyed by the event name which also defines the expected body and payload */
 export interface IMercuryEventContract {
 	[eventName: string]: {
 		body?: Record<string, any>
@@ -10,6 +11,7 @@ export interface IMercuryEventContract {
 
 export type EventSpace = IMercuryEventContract[string]
 
+/** The response from a mercury GQL call */
 export interface IMercuryGQLBody<TBody = Record<string, any>> {
 	data: TBody
 	extensions: {
@@ -19,20 +21,29 @@ export interface IMercuryGQLBody<TBody = Record<string, any>> {
 	}
 }
 
+/** Options for mercury.emit() */
 export interface IMercuryEmitOptions<
 	EventContract extends IMercuryEventContract,
 	EventName extends keyof EventContract,
 	EventSpace extends EventContract[EventName]
 > {
+	/** The event name to emit */
 	eventName: EventName
+	/** Optionally specify a unique eventId. This should be a UUID v4 */
 	eventId?: string
+	/** The organization id associated with the event */
 	organizationId?: string | null
+	/** The location id associated with the event */
 	locationId?: string | null
+	/** The user id associated with the event */
 	userId?: string | null
+	/** The event payload */
 	payload?: EventSpace['payload']
+	/** Authenticaiton credentials */
 	credentials?: MercuryAuth
 }
 
+/** Options for mercury.on() */
 export interface IMercuryOnOptions<
 	EventContract extends IMercuryEventContract,
 	EventName extends keyof EventContract,

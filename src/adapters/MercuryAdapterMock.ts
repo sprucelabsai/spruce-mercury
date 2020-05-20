@@ -15,11 +15,6 @@ export default class MercuryAdapterMock<
 	EventContract extends IMercuryEventContract
 > implements MercuryAdapter<EventContract> {
 	public isConnected = false
-	// private options!: IMercuryAdapterMockOptions
-	// private eventHandler!: TOnPromiseHandler
-	// private errorHandler!: TOnErrorHandler
-	// private onConnect!: TOnConnectFunctionHandler
-	// private onDisconnect!: TOnConnectFunctionHandler
 
 	public init(
 		options: IMercuryAdapterMockOptions,
@@ -30,11 +25,6 @@ export default class MercuryAdapterMock<
 	): void {
 		// TODO
 		log.debug('MercuryAdapterMock.init()', { options })
-		// this.options = options
-		// this.eventHandler = eventHandler
-		// this.errorHandler = errorHandler
-		// this.onConnect = onConnect
-		// this.onDisconnect = onDisconnect
 	}
 
 	public on<
