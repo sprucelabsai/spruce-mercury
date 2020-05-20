@@ -8,9 +8,9 @@ import {
 	IMercuryEmitOptions,
 	IMercuryEventContract,
 	OnHandler,
-	OnConnectHandler
+	OnConnectHandler,
+	IOnData
 } from './types/mercuryEvents'
-import { MercurySubscriptionScope } from './types/subscriptions'
 
 export enum MercuryAdapterKind {
 	// eslint-disable-next-line spruce/prefer-pascal-case-enums
@@ -49,7 +49,6 @@ export interface IMercuryConnectOptions {
 
 interface IEventHandlers<
 	EventContract extends IMercuryEventContract = IMercuryEventContract,
-	Namespace extends keyof EventContract = any,
 	EventName extends keyof EventContract = any,
 	EventSpace extends EventContract[EventName] = any
 > {
@@ -108,7 +107,6 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		EventSpace extends EventContract[EventName]
 	>(
 		options: IMercuryOnOptions<EventContract, EventName, EventSpace>,
-		// handler: OnHandler<EventContract, EventName, EventSpace>
 		handler: OnHandler<EventContract, EventName, EventSpace>
 	): void {
 		if (!this.adapter) {
@@ -165,6 +163,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		options: IMercuryEmitOptions<EventContract, EventName, EventSpace>,
 		handler?: OnHandler<EventContract, EventName, EventSpace>
 	): Promise<{
+		// TODO: Better typing on this response
 		responses: {
 			payload: EventSpace['body']
 		}[]
@@ -314,7 +313,6 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 
 	/** Used for keepting track of callbacks in this.eventHandlers */
 	private getEventHandlerKey<
-		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(options: IMercuryOnOptions<EventContract, EventName, EventSpace>): string {
@@ -337,7 +335,6 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 
 	/** Used for determining which callbacks to execute from this.eventHandlers */
 	private getPossibleEventHandlerKeys<
-		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(
@@ -394,7 +391,6 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 
 	/** Called when the adapter detects an event. This function then looks to see if there are any callbacks for that event to invoke */
 	private async handleEvent<
-		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(options: IMercuryOnOptions<EventContract, EventName, EventSpace>) {
@@ -445,31 +441,11 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 
 	/** Called when the adapter detects an error */
 	private async handleError<
-		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(options: {
 		code: string
-		data: {
-			/** Whether this handler will provide a respone to the event. */
-			respond?: boolean
-			/** The event namespace */
-			namespace: Namespace
-			/** The event to subscribe to */
-			eventName: EventName
-			/** The scope of the data to get back */
-			scope: MercurySubscriptionScope
-			/** A custom UUID for this event. If not provided, one will be generated */
-			eventId?: string
-			/** The organization id where the event is triggered */
-			organizationId?: string | null
-			/** The location id where the event is triggered. If passed, organizationId should also be set. */
-			locationId?: string | null
-			/** The user id who is triggering this event */
-			userId?: string | null
-			payload?: EventSpace['payload']
-			responses?: EventSpace['body'][]
-		}
+		data: IOnData<EventContract, EventName, EventSpace>
 	}) {
 		const { code, data } = options
 		log.debug('*** Mercury.handleError')
@@ -498,7 +474,6 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 
 	/** Executes either a function or promise callback by detecting the type */
 	private executeErrorHandler<
-		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(handler: OnHandler<EventContract, EventName, EventSpace>, code: string) {
@@ -522,7 +497,6 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 
 	/** Executes either a function or promise callback by detecting the type */
 	private executeHandler<
-		Namespace extends keyof EventContract,
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(handler: OnHandler<EventContract, EventName, EventSpace>, data?: any) {

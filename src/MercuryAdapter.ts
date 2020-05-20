@@ -1,11 +1,11 @@
 import {
 	IMercuryEmitOptions,
-	OnPromiseHandler,
 	OnErrorHandler,
 	OnConnectFunctionHandler,
 	OnDisconnectFunctionHandler,
 	IMercuryEventContract,
-	IMercuryAdapterOnOptions
+	IMercuryAdapterOnOptions,
+	OnHandleEvent
 } from './types/mercuryEvents'
 
 export abstract class MercuryAdapter<
@@ -15,7 +15,7 @@ export abstract class MercuryAdapter<
 
 	public abstract init(
 		options: Record<string, any>,
-		eventHandler: OnPromiseHandler<IMercuryEventContract, any, any>,
+		eventHandler: OnHandleEvent<EventContract, any, any>,
 		errorHandler: OnErrorHandler,
 		onConnect: OnConnectFunctionHandler,
 		onDisconnect: OnDisconnectFunctionHandler

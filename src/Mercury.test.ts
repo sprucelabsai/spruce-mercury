@@ -4,43 +4,6 @@ import { Mercury } from './Mercury'
 import { IMercuryEventContract } from './types/mercuryEvents'
 import { MercurySubscriptionScope } from './types/subscriptions'
 
-// const eventContract = {
-// 	core: {
-// 		GetDeveloperSkills: {
-// 			payload: string,
-// 			body: 'SpruceString'
-// 		}
-// 	}
-// }
-
-// export namespace SpruceEvents.core {
-// 	export type GetDeveloperSkills = IMercuryEventContract[string][string]
-// 	// export type GetDeveloperSkills = {
-// 	// 	IMercuryEventContract[string][string]
-// 	// 	/** The event name  */
-// 	// 	// export const name = 'get-developer-skills'
-// 	// 	// export interface IPayload {
-// 	// 	// 	something: string
-// 	// 	// }
-// 	// 	// export interface IResponseBody {
-// 	// 	// 	testBody: string[]
-// 	// 	// }
-// 	// }
-// }
-
-// const SpruceEvents = {
-// 	core: {
-// 		didEnter: {
-// 			namespace: 'core',
-// 			eventName: 'didEnter'
-// 		},
-// 		didLeave: {
-// 			namespace: 'core',
-// 			eventName: 'didLeave'
-// 		}
-// 	}
-// } as const
-
 export const SpruceEvents = {
 	core: {
 		DidEnter: 'did-enter',
@@ -92,7 +55,8 @@ export default class MercuryTest extends BaseTest {
 				scope: MercurySubscriptionScope.AnonymousGlobal
 			},
 			options => {
-				console.log(options.payload.blah)
+				console.log(options.payload.userId)
+				console.log(options.payload.enteredAt)
 			}
 		)
 
@@ -103,7 +67,7 @@ export default class MercuryTest extends BaseTest {
 			}
 		})
 
-		result.responses[0].payload.userId
+		assert.isOk(result.responses[0].payload.userId)
 
 		// mercury.emit(SpruceEvents.core.didEnter)
 

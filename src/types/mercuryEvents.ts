@@ -91,6 +91,14 @@ export type OnPromiseHandler<
 	EventSpace extends EventContract[EventName]
 > = (data: IOnData<EventContract, EventName, EventSpace>) => Promise<void>
 
+export type OnHandleEvent<
+	EventContract extends IMercuryEventContract,
+	EventName extends keyof EventContract,
+	EventSpace extends EventContract[EventName]
+> = (
+	data: IMercuryOnOptions<EventContract, EventName, EventSpace>
+) => Promise<void>
+
 export type OnHandler<
 	EventContract extends IMercuryEventContract,
 	EventName extends keyof EventContract,

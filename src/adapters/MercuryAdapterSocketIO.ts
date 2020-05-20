@@ -2,7 +2,7 @@
 import log from '../lib/log'
 import { MercuryAdapter } from '../MercuryAdapter'
 import {
-	OnPromiseHandler,
+	OnHandleEvent,
 	OnConnectFunctionHandler,
 	OnErrorHandler,
 	IMercuryAdapterOnOptions,
@@ -31,14 +31,14 @@ export default class MercuryAdapterSocketIO<
 	public isConnected = false
 	private socket?: any
 	private options!: IMercuryAdapterSocketIOOptions
-	private eventHandler!: OnPromiseHandler<IMercuryEventContract, any, any>
+	private eventHandler!: OnHandleEvent<IMercuryEventContract, any, any>
 	private errorHandler!: OnErrorHandler
 	private onConnect!: OnConnectFunctionHandler
 	private onDisconnect!: OnConnectFunctionHandler
 
 	public init(
 		options: IMercuryAdapterSocketIOOptions,
-		eventHandler: OnPromiseHandler<IMercuryEventContract, any, any>,
+		eventHandler: OnHandleEvent<IMercuryEventContract, any, any>,
 		errorHandler: OnErrorHandler,
 		onConnect: OnConnectFunctionHandler,
 		onDisconnect: OnConnectFunctionHandler

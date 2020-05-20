@@ -1,16 +1,19 @@
 import log from '../lib/log'
-import {
-	TOnPromiseHandler,
-	TOnConnectFunctionHandler,
-	IMercuryEmitOptions,
-	IMercuryAdapterOnOptions,
-	TOnErrorHandler
-} from '../Mercury'
 import { MercuryAdapter } from '../MercuryAdapter'
+import {
+	OnHandleEvent,
+	OnConnectFunctionHandler,
+	OnErrorHandler,
+	IMercuryAdapterOnOptions,
+	IMercuryEventContract,
+	IMercuryEmitOptions
+} from '../types/mercuryEvents'
 
 export interface IMercuryAdapterMockOptions {}
 
-export default class MercuryAdapterMock implements MercuryAdapter {
+export default class MercuryAdapterMock<
+	EventContract extends IMercuryEventContract
+> implements MercuryAdapter<EventContract> {
 	public isConnected = false
 	// private options!: IMercuryAdapterMockOptions
 	// private eventHandler!: TOnPromiseHandler
@@ -20,10 +23,10 @@ export default class MercuryAdapterMock implements MercuryAdapter {
 
 	public init(
 		options: IMercuryAdapterMockOptions,
-		_eventHandler: TOnPromiseHandler,
-		_errorHandler: TOnErrorHandler,
-		_onConnect: TOnConnectFunctionHandler,
-		_onDisconnect: TOnConnectFunctionHandler
+		_eventHandler: OnHandleEvent<IMercuryEventContract, any, any>,
+		_errorHandler: OnErrorHandler,
+		_onConnect: OnConnectFunctionHandler,
+		_onDisconnect: OnConnectFunctionHandler
 	): void {
 		// TODO
 		log.debug('MercuryAdapterMock.init()', { options })
@@ -34,11 +37,19 @@ export default class MercuryAdapterMock implements MercuryAdapter {
 		// this.onDisconnect = onDisconnect
 	}
 
-	public on(_options: IMercuryAdapterOnOptions): void {
+	public on<
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
+	>(
+		_options: IMercuryAdapterOnOptions<EventContract, EventName, EventSpace>
+	): void {
 		// TODO
 	}
 
-	public emit(_options: IMercuryEmitOptions) {
+	public emit<
+		EventName extends keyof EventContract,
+		EventSpace extends EventContract[EventName]
+	>(_options: IMercuryEmitOptions<EventContract, EventName, EventSpace>) {
 		// TODO
 	}
 
