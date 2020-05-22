@@ -1,4 +1,3 @@
-import MercuryAdapterMock from './adapters/MercuryAdapterMock'
 import MercuryAdapterSocketIO from './adapters/MercuryAdapterSocketIO'
 import log from './lib/log'
 import { MercuryAdapter } from './MercuryAdapter'
@@ -14,8 +13,7 @@ import {
 
 export enum MercuryAdapterKind {
 	// eslint-disable-next-line spruce/prefer-pascal-case-enums
-	SocketIO = 'socketio',
-	Mock = 'mock'
+	SocketIO = 'socketio'
 }
 
 export interface IMercuryError {}
@@ -42,9 +40,6 @@ export interface IMercuryConnectOptions {
 	 * Mercury will handle cleanup of callback functions created in onConnect
 	 */
 	onDisconnect?: OnConnectHandler
-
-	/** When set to true, a mock instance of mercury that does not connect to a real api is used. Use this option in your unit tests. */
-	useMock?: boolean
 }
 
 interface IEventHandlers<
@@ -60,7 +55,7 @@ interface IEventHandlers<
 	}
 }
 
-export class Mercury<EventContract extends IMercuryEventContract> {
+export default class Mercury<EventContract extends IMercuryEventContract> {
 	public logLevel = 'warn'
 	public connectionOptions?: IMercuryConnectOptions
 	public get isConnected(): boolean {
@@ -69,11 +64,11 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		}
 		return false
 	}
-	private clientOnConnect?: OnConnectHandler
-	private clientOnDisconnect?: OnConnectHandler
-	private adapter?: MercuryAdapter<EventContract>
-	private eventHandlers: IEventHandlers = {}
-	private credentials?: MercuryAuth
+	protected clientOnConnect?: OnConnectHandler
+	protected clientOnDisconnect?: OnConnectHandler
+	protected adapter?: MercuryAdapter<EventContract>
+	protected eventHandlers: IEventHandlers = {}
+	protected credentials?: MercuryAuth
 
 	public constructor(options?: IMercuryConnectOptions) {
 		if (!options) {
@@ -137,36 +132,15 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** Emit an event and set handler for responses */
-	// public async emit<TPayload = Record<string, any>, TBody = any>(
-	// 	options: IMercuryEmitOptions<TPayload>,
-	// 	handler?: OnHandler
-	// ): Promise<{
-	// 	responses: {
-	// 		payload: TBody
-	// 	}[]
-	// }> {
-
 	public async emit<
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(
-		// options: {
-		// 	namespace: Namespace
-		// 	eventName: EventName
-		// 	eventId?: string
-		// 	organizationId?: string | null
-		// 	locationId?: string | null
-		// 	userId?: string | null
-		// 	payload?: EventSpace['payload']
-		// 	credentials?: MercuryAuth
-		// },
 		options: IMercuryEmitOptions<EventContract, EventName, EventSpace>,
 		handler?: OnHandler<EventContract, EventName, EventSpace>
 	): Promise<{
 		// TODO: Better typing on this response
-		responses: {
-			payload: EventSpace['body']
-		}[]
+		responses: IOnData<EventContract, EventName, EventSpace>[]
 	}> {
 		await this.awaitConnection()
 
@@ -196,8 +170,41 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		return this.emitOnFinishedCallback(eventId)
 	}
 
+	protected setAdapter(options: {
+		adapter: MercuryAdapterKind
+		connectionOptions: Record<string, any>
+	}): boolean {
+		const { adapter, connectionOptions } = options
+		log.debug('setAdapter', { options })
+
+		if (this.adapter) {
+			this.adapter.disconnect()
+			this.adapter = undefined
+		}
+
+		// TODO: Globby the adapters directory and set the correct one when we have multiple
+		let isAdapterSet = false
+		switch (adapter) {
+			case MercuryAdapterKind.SocketIO:
+				this.adapter = new MercuryAdapterSocketIO()
+				this.adapter.init(
+					connectionOptions,
+					this.handleEvent.bind(this),
+					this.handleError.bind(this),
+					this.onConnect.bind(this),
+					this.onDisconnect.bind(this)
+				)
+				isAdapterSet = true
+				break
+			default:
+				break
+		}
+
+		return isAdapterSet
+	}
+
 	/** Waits for the connection up to a certain timeout */
-	private awaitConnection(timeoutMS?: number): Promise<void> {
+	protected awaitConnection(timeoutMS?: number): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const ms = timeoutMS || 5000
 			this.waitConnection({
@@ -214,7 +221,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		})
 	}
 
-	private waitConnection(options: {
+	protected waitConnection(options: {
 		cb: (e?: Error) => void
 		timeoutMS: number
 		intervalMS?: number
@@ -242,7 +249,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		}, intervalMS)
 	}
 
-	private emitOnFinishedCallback(eventId: string): Promise<any> {
+	protected emitOnFinishedCallback(eventId: string): Promise<any> {
 		let onFinishedHandler
 		let onErrorHandler
 		const promise = new Promise((resolve, reject) => {
@@ -267,52 +274,8 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		return promise
 	}
 
-	private setAdapter(options: {
-		adapter: MercuryAdapterKind
-		connectionOptions: Record<string, any>
-	}): boolean {
-		const { adapter, connectionOptions } = options
-		log.debug('setAdapter', { options })
-
-		if (this.adapter) {
-			this.adapter.disconnect()
-			this.adapter = undefined
-		}
-
-		// TODO: Globby the adapters directory and set the correct one when we have multiple
-		let isAdapterSet = false
-		switch (adapter) {
-			case MercuryAdapterKind.SocketIO:
-				this.adapter = new MercuryAdapterSocketIO()
-				this.adapter.init(
-					connectionOptions,
-					this.handleEvent.bind(this),
-					this.handleError.bind(this),
-					this.onConnect.bind(this),
-					this.onDisconnect.bind(this)
-				)
-				isAdapterSet = true
-				break
-			case MercuryAdapterKind.Mock:
-				this.adapter = new MercuryAdapterMock()
-				this.adapter.init(
-					connectionOptions,
-					this.handleEvent.bind(this),
-					this.handleError.bind(this),
-					this.onConnect.bind(this),
-					this.onDisconnect.bind(this)
-				)
-				isAdapterSet = true
-				break
-			default:
-				break
-		}
-
-		return isAdapterSet
-	}
-
 	/** Used for keepting track of callbacks in this.eventHandlers */
-	private getEventHandlerKey<
+	protected getEventHandlerKey<
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(options: IMercuryOnOptions<EventContract, EventName, EventSpace>): string {
@@ -334,7 +297,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** Used for determining which callbacks to execute from this.eventHandlers */
-	private getPossibleEventHandlerKeys<
+	protected getPossibleEventHandlerKeys<
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(
@@ -366,13 +329,13 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** Sends the authentication credentials to the API and gets back the adapter details to use for connecting */
-	private async getAdapterOptions(
+	protected async getAdapterOptions(
 		options: IMercuryConnectOptions
 	): Promise<{
 		adapter: MercuryAdapterKind
 		connectionOptions: Record<string, any>
 	}> {
-		const { spruceApiUrl, credentials, useMock } = options
+		const { spruceApiUrl, credentials } = options
 
 		// In the future if we have multiple adapters we could call the api to determine the type of adapter to use
 		// const response = await request
@@ -381,7 +344,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 		// return response.body
 
 		return {
-			adapter: useMock ? MercuryAdapterKind.Mock : MercuryAdapterKind.SocketIO,
+			adapter: MercuryAdapterKind.SocketIO,
 			connectionOptions: {
 				socketIOUrl: spruceApiUrl,
 				...credentials
@@ -390,7 +353,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** Called when the adapter detects an event. This function then looks to see if there are any callbacks for that event to invoke */
-	private async handleEvent<
+	protected async handleEvent<
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(options: IMercuryOnOptions<EventContract, EventName, EventSpace>) {
@@ -440,7 +403,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** Called when the adapter detects an error */
-	private async handleError<
+	protected async handleError<
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(options: {
@@ -473,7 +436,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** Executes either a function or promise callback by detecting the type */
-	private executeErrorHandler<
+	protected executeErrorHandler<
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(handler: OnHandler<EventContract, EventName, EventSpace>, code: string) {
@@ -496,7 +459,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** Executes either a function or promise callback by detecting the type */
-	private executeHandler<
+	protected executeHandler<
 		EventName extends keyof EventContract,
 		EventSpace extends EventContract[EventName]
 	>(handler: OnHandler<EventContract, EventName, EventSpace>, data?: any) {
@@ -527,14 +490,14 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** Called when the adapter connects */
-	private onConnect() {
+	protected onConnect() {
 		log.debug('Mercury: onConnect')
 		if (this.clientOnConnect) {
 			this.executeHandler(this.clientOnConnect)
 		}
 	}
 
-	private onDisconnect() {
+	protected onDisconnect() {
 		log.debug('Mercury: onDisconnect')
 		// Clear event handlers
 		this.eventHandlers = {}
@@ -545,7 +508,7 @@ export class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** UUID v4 generator (from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript) */
-	private uuid() {
+	protected uuid() {
 		// @ts-ignore
 		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 			const r = (Math.random() * 16) | 0,

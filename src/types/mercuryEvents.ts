@@ -4,8 +4,8 @@ import { MercurySubscriptionScope } from './subscriptions'
 /** An event contract keyed by the event name which also defines the expected body and payload */
 export interface IMercuryEventContract {
 	[eventName: string]: {
-		body?: Record<string, any>
-		payload?: Record<string, any>
+		emitPayload?: Record<string, any>
+		responsePayload?: Record<string, any>
 	}
 }
 
@@ -38,7 +38,7 @@ export interface IMercuryEmitOptions<
 	/** The user id associated with the event */
 	userId?: string | null
 	/** The event payload */
-	payload?: EventSpace['payload']
+	payload?: EventSpace['emitPayload']
 	/** Authenticaiton credentials */
 	credentials?: MercuryAuth
 }
@@ -63,8 +63,14 @@ export interface IMercuryOnOptions<
 	locationId?: string | null
 	/** The user id who is triggering this event */
 	userId?: string | null
-	payload?: EventSpace['payload']
-	responses?: EventSpace['body'][]
+	payload?: EventSpace['emitPayload']
+	responses?: EventSpace['responsePayload'][]
+}
+
+export interface ISkillOnData {
+	id: string
+	name: string
+	slug: string
 }
 
 export interface IOnData<
@@ -79,14 +85,10 @@ export interface IOnData<
 	eventId: string
 
 	/** The skill that sent this data */
-	skill: {
-		id: string
-		name: string
-		slug: string
-	}
+	skill: ISkillOnData
 
 	/** The data sent with this event */
-	payload: EventSpace['payload']
+	payload: EventSpace['responsePayload']
 }
 
 // .on Handlers

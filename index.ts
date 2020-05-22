@@ -1,4 +1,6 @@
 export * from './src/Mercury'
+export { default as Mercury } from './src/Mercury'
+export { default as MercuryMock } from './src/MercuryMock'
 export * from './src/types/auth'
 export * from './src/types/mercuryEvents'
 export * from './src/types/subscriptions'

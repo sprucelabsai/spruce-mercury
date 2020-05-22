@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import BaseTest, { test, assert } from '@sprucelabs/test'
-import { Mercury } from './Mercury'
+import MercuryMock from './MercuryMock'
 import { IMercuryEventContract } from './types/mercuryEvents'
 import { MercurySubscriptionScope } from './types/subscriptions'
 
@@ -16,30 +16,42 @@ export const SpruceEvents = {
 
 interface IMyEventContract extends IMercuryEventContract {
 	'did-enter': {
-		payload: {
+		emitPayload: {
 			userId: string
 			enteredAt: string
 		}
-		body: {
+		responsePayload: {
 			somethingElse: string
 		}
 	}
 	'did-leave': {
-		body: {
+		responsePayload: {
 			userId: string
 		}
 	}
 	'booking:get-appointments': {
-		body: {
+		responsePayload: {
 			appointmentIds?: string[]
 		}
 	}
 }
 
 export default class MercuryTest extends BaseTest {
+	private static mercury: MercuryMock<IMyEventContract>
+
+	protected static async beforeAll() {
+		this.mercury = new MercuryMock({
+			spruceApiUrl: 'https://local-api.spruce.ai'
+		})
+	}
+
+	@test('Can create a mercury instance')
+	protected static async createMercury() {
+		assert.isOk(this.mercury)
+	}
+
 	@test('Can create an event contract')
 	protected static async createEventContract() {
-		const mercury = new Mercury<IMyEventContract>()
 		// mercury.emit(
 		// 	{ namespace: 'core', eventName: 'didLeave' },
 		// 	null,
@@ -47,7 +59,14 @@ export default class MercuryTest extends BaseTest {
 		// 		console.log(body)
 		// 	}
 		// )
-		mercury.on(
+		this.mercury.setEmitResponse({
+			eventName: SpruceEvents.core.DidEnter,
+			payload: {
+				somethingElse: 'blah'
+			}
+		})
+
+		this.mercury.on(
 			{
 				// eventName: 'did-enter',
 				// eventName: SpruceEvents.core.DidEnter,
@@ -55,12 +74,11 @@ export default class MercuryTest extends BaseTest {
 				scope: MercurySubscriptionScope.AnonymousGlobal
 			},
 			options => {
-				console.log(options.payload.userId)
-				console.log(options.payload.enteredAt)
+				console.log(options.payload.somethingElse)
 			}
 		)
 
-		const result = await mercury.emit({
+		const result = await this.mercury.emit({
 			eventName: 'did-leave',
 			payload: {
 				somethingElse: ''

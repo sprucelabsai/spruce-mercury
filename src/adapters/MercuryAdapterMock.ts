@@ -14,7 +14,7 @@ export interface IMercuryAdapterMockOptions {}
 export default class MercuryAdapterMock<
 	EventContract extends IMercuryEventContract
 > implements MercuryAdapter<EventContract> {
-	public isConnected = false
+	public isConnected = true
 
 	public init(
 		options: IMercuryAdapterMockOptions,
@@ -41,6 +41,7 @@ export default class MercuryAdapterMock<
 		EventSpace extends EventContract[EventName]
 	>(_options: IMercuryEmitOptions<EventContract, EventName, EventSpace>) {
 		// TODO
+		log.debug(_options)
 	}
 
 	public disconnect() {
