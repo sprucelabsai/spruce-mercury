@@ -3,6 +3,7 @@ import BaseTest, { test, assert } from '@sprucelabs/test'
 import MercuryMock from './MercuryMock'
 import { IMercuryEventContract } from './types/mercuryEvents'
 import { MercurySubscriptionScope } from './types/subscriptions'
+// import { MercurySubscriptionScope } from './types/subscriptions'
 
 export const SpruceEvents = {
 	core: {
@@ -59,12 +60,14 @@ export default class MercuryTest extends BaseTest {
 		// 		console.log(body)
 		// 	}
 		// )
-		this.mercury.setEmitResponse({
+		this.mercury.setMockResponse({
 			eventName: SpruceEvents.core.DidEnter,
 			payload: {
 				somethingElse: 'blah'
 			}
 		})
+
+		let numCallbacks = 0
 
 		this.mercury.on(
 			{
@@ -75,17 +78,20 @@ export default class MercuryTest extends BaseTest {
 			},
 			options => {
 				console.log(options.payload.somethingElse)
+				numCallbacks += 1
 			}
 		)
 
 		const result = await this.mercury.emit({
-			eventName: 'did-leave',
+			eventName: 'did-enter',
 			payload: {
-				somethingElse: ''
+				userId: 'asdf',
+				enteredAt: 'asdf'
 			}
 		})
 
-		assert.isOk(result.responses[0].payload.userId)
+		assert.isOk(result.responses[0].payload.somethingElse)
+		assert.equal(numCallbacks, 1)
 
 		// mercury.emit(SpruceEvents.core.didEnter)
 

@@ -81,6 +81,15 @@ export interface IOnData<
 	/** The event name that is being triggered */
 	eventName: EventName
 
+	/** The organization id where the event is triggered */
+	organizationId?: string | null
+
+	/** The location id where the event is triggered. If passed, organizationId should also be set. */
+	locationId?: string | null
+
+	/** The user id who is triggering this event */
+	userId?: string | null
+
 	/** The unique id for this event */
 	eventId: string
 

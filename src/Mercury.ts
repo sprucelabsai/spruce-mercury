@@ -139,7 +139,6 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 		options: IMercuryEmitOptions<EventContract, EventName, EventSpace>,
 		handler?: OnHandler<EventContract, EventName, EventSpace>
 	): Promise<{
-		// TODO: Better typing on this response
 		responses: IOnData<EventContract, EventName, EventSpace>[]
 	}> {
 		await this.awaitConnection()
