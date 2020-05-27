@@ -31,7 +31,7 @@
     "clean": "rm -rf build/",
     "lint": "eslint '**/*.ts' && tsc -p . --noEmit",
     "lint:fix": "eslint --fix '**/*.ts'",
-    "#test": "mocha -r ts-node/register/transpile-only --exit 'tests/**/*Tests*'",
+    "test": "jest",
     "release": "semantic-release"
   },
   "dependencies": {
