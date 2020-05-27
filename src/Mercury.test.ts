@@ -3,7 +3,6 @@ import BaseTest, { test, assert } from '@sprucelabs/test'
 import MercuryMock from './MercuryMock'
 import { IMercuryEventContract } from './types/mercuryEvents'
 import { MercurySubscriptionScope } from './types/subscriptions'
-// import { MercurySubscriptionScope } from './types/subscriptions'
 
 export const SpruceEvents = {
 	core: {
@@ -53,13 +52,6 @@ export default class MercuryTest extends BaseTest {
 
 	@test('Can create an event contract')
 	protected static async createEventContract() {
-		// mercury.emit(
-		// 	{ namespace: 'core', eventName: 'didLeave' },
-		// 	null,
-		// 	body => {
-		// 		console.log(body)
-		// 	}
-		// )
 		this.mercury.setMockResponse({
 			eventName: SpruceEvents.core.DidEnter,
 			payload: {
@@ -71,8 +63,6 @@ export default class MercuryTest extends BaseTest {
 
 		this.mercury.on(
 			{
-				// eventName: 'did-enter',
-				// eventName: SpruceEvents.core.DidEnter,
 				eventName: SpruceEvents.core.DidEnter,
 				scope: MercurySubscriptionScope.AnonymousGlobal
 			},
@@ -92,15 +82,5 @@ export default class MercuryTest extends BaseTest {
 
 		assert.isOk(result.responses[0].payload.somethingElse)
 		assert.equal(numCallbacks, 1)
-
-		// mercury.emit(SpruceEvents.core.didEnter)
-
-		// const eventContract: IMercuryEventContract = {
-		// 	core: {
-		// 		didEnter: {
-
-		// 		}
-		// 	}
-		// }
 	}
 }
