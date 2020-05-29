@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import BaseTest, { test, assert } from '@sprucelabs/test'
 import MercuryMock from './MercuryMock'
 import { IMercuryEventContract } from './types/mercuryEvents'
