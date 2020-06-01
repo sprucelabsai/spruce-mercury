@@ -1,4 +1,3 @@
-import { faker } from '@sprucelabs/test'
 import MercuryAdapterMock from './adapters/MercuryAdapterMock'
 import log from './lib/log'
 import Mercury, { MercuryAdapterKind } from './Mercury'
@@ -10,6 +9,18 @@ import {
 	OnHandler
 } from './types/mercuryEvents'
 import { MercurySubscriptionScope } from './types/subscriptions'
+
+// @ts-ignore
+let faker
+try {
+	faker = require('@sprucelabs/test')
+} catch (e) {
+	faker = {
+		name: {
+			title: () => 'testing title'
+		}
+	}
+}
 
 interface IMockEmitResponses {
 	[eventName: string]: {
