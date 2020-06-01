@@ -16,7 +16,7 @@ let faker: {
 	}
 }
 try {
-	faker = require('@sprucelabs/test')
+	faker = require('@sprucelabs/test').faker
 } catch (e) {
 	faker = {
 		name: {
