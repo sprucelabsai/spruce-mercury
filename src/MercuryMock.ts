@@ -10,8 +10,11 @@ import {
 } from './types/mercuryEvents'
 import { MercurySubscriptionScope } from './types/subscriptions'
 
-// @ts-ignore
-let faker
+let faker: {
+	name: {
+		title: () => string
+	}
+}
 try {
 	faker = require('@sprucelabs/test')
 } catch (e) {
