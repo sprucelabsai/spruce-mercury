@@ -6,7 +6,7 @@ import {
 	IMercuryEventContract,
 	IMercuryAdapterOnOptions,
 	OnHandleEvent
-} from './types/mercuryEvents'
+} from './types/events.types'
 
 export abstract class MercuryAdapter<
 	EventContract extends IMercuryEventContract

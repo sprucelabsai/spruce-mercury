@@ -1,5 +1,5 @@
-import { MercuryAuth } from './auth'
-import { MercurySubscriptionScope } from './subscriptions'
+import { MercuryAuth } from './auth.types'
+import { MercurySubscriptionScope } from './subscriptions.types'
 
 /** An event contract keyed by the event name which also defines the expected body and payload */
 export interface IMercuryEventContract {
@@ -73,7 +73,7 @@ export interface ISkillOnData {
 	slug: string
 }
 
-export interface IOnData<
+export interface IEventResponse<
 	EventContract extends IMercuryEventContract,
 	EventName extends keyof EventContract,
 	EventSpace extends EventContract[EventName]
@@ -105,13 +105,15 @@ export type OnFunctionHandler<
 	EventContract extends IMercuryEventContract,
 	EventName extends keyof EventContract,
 	EventSpace extends EventContract[EventName]
-> = (data: IOnData<EventContract, EventName, EventSpace>) => void
+> = (data: IEventResponse<EventContract, EventName, EventSpace>) => void
 
 export type OnPromiseHandler<
 	EventContract extends IMercuryEventContract,
 	EventName extends keyof EventContract,
 	EventSpace extends EventContract[EventName]
-> = (data: IOnData<EventContract, EventName, EventSpace>) => Promise<void>
+> = (
+	data: IEventResponse<EventContract, EventName, EventSpace>
+) => Promise<void>
 
 export type OnHandleEvent<
 	EventContract extends IMercuryEventContract,

@@ -1,7 +1,8 @@
 import BaseTest, { test, assert } from '@sprucelabs/test'
-import MercuryMock from './MercuryMock'
-import { IMercuryEventContract } from './types/mercuryEvents'
-import { MercurySubscriptionScope } from './types/subscriptions'
+import MercuryAdapterMock from './adapters/MercuryAdapterMock'
+import Mercury from './Mercury'
+import { IMercuryEventContract } from './types/events.types'
+import { MercurySubscriptionScope } from './types/subscriptions.types'
 
 export const SpruceEvents = {
 	core: {
@@ -36,10 +37,13 @@ interface IMyEventContract extends IMercuryEventContract {
 }
 
 export default class MercuryTest extends BaseTest {
-	private static mercury: MercuryMock<IMyEventContract>
+	private static mercury: Mercury<IMyEventContract>
+	private static adapter: MercuryAdapterMock<IMyEventContract>
 
 	protected static async beforeAll() {
-		this.mercury = new MercuryMock({
+		this.adapter = new MercuryAdapterMock()
+		this.mercury = new Mercury({
+			adapter: this.adapter,
 			spruceApiUrl: 'https://local-api.spruce.ai'
 		})
 	}
@@ -51,7 +55,7 @@ export default class MercuryTest extends BaseTest {
 
 	@test('Can create an event contract')
 	protected static async createEventContract() {
-		this.mercury.setMockResponse({
+		this.adapter.setMockResponse({
 			eventName: SpruceEvents.core.DidEnter,
 			payload: {
 				somethingElse: 'blah'
@@ -79,7 +83,8 @@ export default class MercuryTest extends BaseTest {
 			}
 		})
 
-		assert.isOk(result.responses[0].payload.somethingElse)
+		assert.isString(result.responses[0].payload.somethingElse)
+		assert.equal(result.responses[0].payload.somethingElse, 'blah')
 		assert.equal(numCallbacks, 1)
 	}
 }

@@ -1,15 +1,16 @@
 import MercuryAdapterSocketIO from './adapters/MercuryAdapterSocketIO'
 import log from './lib/log'
+import uuid from './lib/uuid'
 import { MercuryAdapter } from './MercuryAdapter'
-import { MercuryAuth } from './types/auth'
+import { MercuryAuth } from './types/auth.types'
 import {
 	IMercuryOnOptions,
 	IMercuryEmitOptions,
 	IMercuryEventContract,
 	OnHandler,
 	OnConnectHandler,
-	IOnData
-} from './types/mercuryEvents'
+	IEventResponse
+} from './types/events.types'
 
 export enum MercuryAdapterKind {
 	// eslint-disable-next-line spruce/prefer-pascal-case-enums
@@ -18,9 +19,14 @@ export enum MercuryAdapterKind {
 
 export interface IMercuryError {}
 
-export interface IMercuryConnectOptions {
+export interface IMercuryConnectOptions<
+	EventContract extends IMercuryEventContract = IMercuryEventContract
+> {
 	/** The URL for the Spruce API */
 	spruceApiUrl: string
+
+	/** The adapter to use */
+	adapter?: MercuryAdapter<EventContract>
 
 	/** Your connection credentials to connect as either a User or a Skill */
 	credentials?: MercuryAuth
@@ -44,8 +50,8 @@ export interface IMercuryConnectOptions {
 
 interface IEventHandlers<
 	EventContract extends IMercuryEventContract = IMercuryEventContract,
-	EventName extends keyof EventContract = any,
-	EventSpace extends EventContract[EventName] = any
+	EventName extends keyof EventContract = keyof EventContract,
+	EventSpace extends EventContract[EventName] = EventContract[EventName]
 > {
 	[eventName: string]: {
 		// TODO: Can these be strongly typed?
@@ -70,7 +76,7 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 	protected eventHandlers: IEventHandlers = {}
 	protected credentials?: MercuryAuth
 
-	public constructor(options?: IMercuryConnectOptions) {
+	public constructor(options?: IMercuryConnectOptions<EventContract>) {
 		if (!options) {
 			return
 		}
@@ -84,7 +90,9 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	/** Connects Mercury. Calling this method directly  */
-	public async connect(options: IMercuryConnectOptions): Promise<void> {
+	public async connect(
+		options: IMercuryConnectOptions<EventContract>
+	): Promise<void> {
 		const { onConnect, onDisconnect, credentials } = options
 
 		this.connectionOptions = options
@@ -92,8 +100,17 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 		this.clientOnDisconnect = onDisconnect
 		this.credentials = credentials
 
+		let adapter = options.adapter
+
+		if (!adapter) {
+			adapter = await this.getDefaultAdapter()
+		}
+
 		const adapterOptions = await this.getAdapterOptions(options)
-		this.setAdapter(adapterOptions)
+		this.setAdapter({
+			adapter,
+			connectionOptions: adapterOptions
+		})
 	}
 
 	/** Subscribe to events */
@@ -120,6 +137,7 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 					onResponse: []
 				}
 			}
+			// @ts-ignore
 			this.eventHandlers[key].onResponse.push(handler)
 
 			this.adapter.on({
@@ -139,17 +157,19 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 		options: IMercuryEmitOptions<EventContract, EventName, EventSpace>,
 		handler?: OnHandler<EventContract, EventName, EventSpace>
 	): Promise<{
-		responses: IOnData<EventContract, EventName, EventSpace>[]
+		responses: IEventResponse<EventContract, EventName, EventSpace>[]
 	}> {
 		await this.awaitConnection()
 
 		if (!this.adapter) {
+			// TODO: Hold emitted data and retry if adapter does get set?
 			log.warn('Mercury: Unable to emit because adapter is not set.')
-			// @ts-ignore
-			return
+			return {
+				responses: []
+			}
 		}
 
-		const eventId = options.eventId ?? this.uuid()
+		const eventId = options.eventId ?? uuid()
 		if (!this.eventHandlers[eventId]) {
 			this.eventHandlers[eventId] = {
 				onFinished: [],
@@ -158,6 +178,7 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 			}
 		}
 		if (handler) {
+			// @ts-ignore
 			this.eventHandlers[eventId].onResponse = [handler]
 		}
 		this.adapter.emit({
@@ -170,36 +191,18 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 	}
 
 	protected setAdapter(options: {
-		adapter: MercuryAdapterKind
+		adapter: MercuryAdapter<EventContract>
 		connectionOptions: Record<string, any>
-	}): boolean {
+	}) {
 		const { adapter, connectionOptions } = options
-		log.debug('setAdapter', { options })
-
-		if (this.adapter) {
-			this.adapter.disconnect()
-			this.adapter = undefined
-		}
-
-		// TODO: Globby the adapters directory and set the correct one when we have multiple
-		let isAdapterSet = false
-		switch (adapter) {
-			case MercuryAdapterKind.SocketIO:
-				this.adapter = new MercuryAdapterSocketIO()
-				this.adapter.init(
-					connectionOptions,
-					this.handleEvent.bind(this),
-					this.handleError.bind(this),
-					this.onConnect.bind(this),
-					this.onDisconnect.bind(this)
-				)
-				isAdapterSet = true
-				break
-			default:
-				break
-		}
-
-		return isAdapterSet
+		this.adapter = adapter
+		this.adapter.init(
+			connectionOptions,
+			this.handleEvent.bind(this),
+			this.handleError.bind(this),
+			this.onConnect.bind(this),
+			this.onDisconnect.bind(this)
+		)
 	}
 
 	/** Waits for the connection up to a certain timeout */
@@ -329,21 +332,13 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 
 	/** Sends the authentication credentials to the API and gets back the adapter details to use for connecting */
 	protected async getAdapterOptions(
-		options: IMercuryConnectOptions
+		options: IMercuryConnectOptions<EventContract>
 	): Promise<{
-		adapter: MercuryAdapterKind
 		connectionOptions: Record<string, any>
 	}> {
 		const { spruceApiUrl, credentials } = options
 
-		// In the future if we have multiple adapters we could call the api to determine the type of adapter to use
-		// const response = await request
-		// 	.post(`${spruceApiUrl}/api/2.0/mercury/connect`)
-		// 	.send(credentials)
-		// return response.body
-
 		return {
-			adapter: MercuryAdapterKind.SocketIO,
 			connectionOptions: {
 				socketIOUrl: spruceApiUrl,
 				...credentials
@@ -407,7 +402,7 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 		EventSpace extends EventContract[EventName]
 	>(options: {
 		code: string
-		data: IOnData<EventContract, EventName, EventSpace>
+		data: IEventResponse<EventContract, EventName, EventSpace>
 	}) {
 		const { code, data } = options
 		log.debug('*** Mercury.handleError')
@@ -506,13 +501,7 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 		}
 	}
 
-	/** UUID v4 generator (from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript) */
-	protected uuid() {
-		// @ts-ignore
-		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-			const r = (Math.random() * 16) | 0,
-				v = c == 'x' ? r : (r & 0x3) | 0x8
-			return v.toString(16)
-		})
+	protected async getDefaultAdapter(): Promise<MercuryAdapter<EventContract>> {
+		return new MercuryAdapterSocketIO()
 	}
 }

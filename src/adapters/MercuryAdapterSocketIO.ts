@@ -8,7 +8,7 @@ import {
 	IMercuryAdapterOnOptions,
 	IMercuryEventContract,
 	IMercuryEmitOptions
-} from '../types/mercuryEvents'
+} from '../types/events.types'
 
 // Import correct version depending on whether we're in browser or node.
 // Fun gotcha: We can't use require() syntax in browser or it won't compile properly
