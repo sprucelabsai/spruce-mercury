@@ -73,7 +73,7 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 	protected clientOnConnect?: OnConnectHandler
 	protected clientOnDisconnect?: OnConnectHandler
 	protected adapter?: MercuryAdapter<EventContract>
-	protected eventHandlers: IEventHandlers = {}
+	protected eventHandlers: IEventHandlers<EventContract, any, any> = {}
 	protected credentials?: MercuryAuth
 
 	public constructor(options?: IMercuryConnectOptions<EventContract>) {
@@ -137,7 +137,7 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 					onResponse: []
 				}
 			}
-			// @ts-ignore
+
 			this.eventHandlers[key].onResponse.push(handler)
 
 			this.adapter.on({
@@ -178,7 +178,6 @@ export default class Mercury<EventContract extends IMercuryEventContract> {
 			}
 		}
 		if (handler) {
-			// @ts-ignore
 			this.eventHandlers[eventId].onResponse = [handler]
 		}
 		this.adapter.emit({
