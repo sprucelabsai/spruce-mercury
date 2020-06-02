@@ -27,7 +27,6 @@ export default class MercuryAdapterMock<
 > implements MercuryAdapter<EventContract> {
 	public isConnected = true
 
-	// private options!: IMercuryAdapterSocketIOOptions
 	private eventHandler!: OnHandleEvent<IMercuryEventContract, any, any>
 	private mockEmitResponses: IMockEmitResponses = {}
 
@@ -52,14 +51,6 @@ export default class MercuryAdapterMock<
 	): void {
 		// TODO
 	}
-
-	// public emit<
-	// 	EventName extends keyof EventContract,
-	// 	EventSpace extends EventContract[EventName]
-	// >(_options: IMercuryEmitOptions<EventContract, EventName, EventSpace>) {
-	// 	// TODO
-	// 	log.debug(_options)
-	// }
 
 	/** Emit an event and set handler for responses */
 	public emit<
