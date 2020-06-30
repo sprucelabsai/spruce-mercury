@@ -1,5 +1,4 @@
 import log from '../lib/log'
-import { MercuryAdapter } from '../MercuryAdapter'
 import {
 	TOnPromiseHandler,
 	TOnConnectFunctionHandler,
@@ -7,11 +6,12 @@ import {
 	IMercuryAdapterOnOptions,
 	TOnErrorHandler
 } from '../Mercury'
-
+import { MercuryAdapter } from '../MercuryAdapter'
 // Import correct version depending on whether we're in browser or node.
 // Fun gotcha: We can't use require() syntax in browser or it won't compile properly
 let Socket: any
 // @ts-ignore
+// eslint-disable-next-line import/order
 import s from 'socket.io-client/dist/socket.io.js'
 Socket = s
 

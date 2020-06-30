@@ -1,6 +1,6 @@
+import MercuryAdapterSocketIO from './adapters/MercuryAdapterSocketIO'
 import log from './lib/log'
 import { MercuryAdapter } from './MercuryAdapter'
-import MercuryAdapterSocketIO from './adapters/MercuryAdapterSocketIO'
 
 export interface IOnData {
 	/** The event name that is being triggered */
