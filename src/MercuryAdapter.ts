@@ -3,7 +3,7 @@ import {
 	IMercuryAdapterOnOptions,
 	IMercuryEmitOptions,
 	TOnConnectFunctionHandler,
-	TOnErrorHandler
+	TOnErrorHandler,
 } from './Mercury'
 
 export abstract class MercuryAdapter {

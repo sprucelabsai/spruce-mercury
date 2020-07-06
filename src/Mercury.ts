@@ -44,7 +44,7 @@ export type TOnConnectHandler =
 
 export enum MercuryAdapterKind {
 	// eslint-disable-next-line spruce/prefer-pascal-case-enums
-	SocketIO = 'socketio'
+	SocketIO = 'socketio',
 }
 
 export interface IMercuryError {}
@@ -84,7 +84,7 @@ export type MercuryAuth =
 export enum MercuryRole {
 	User = 'user',
 	Skill = 'skill',
-	Anonymous = 'anonymous'
+	Anonymous = 'anonymous',
 }
 
 export interface IMercuryOnOptions {
@@ -161,7 +161,7 @@ export enum MercurySubscriptionScope {
 	/** Receives this event across all organizations and locations */
 	Location = 'location',
 	/** Receives this event for a user */
-	User = 'user'
+	User = 'user',
 }
 
 export class Mercury {
@@ -194,7 +194,7 @@ export class Mercury {
 			.then(() => {
 				log.debug('Mercury connect finished')
 			})
-			.catch(e => {
+			.catch((e) => {
 				log.warn(e)
 			})
 	}
@@ -227,14 +227,14 @@ export class Mercury {
 				this.eventHandlers[key] = {
 					onFinished: [],
 					onError: [],
-					onResponse: []
+					onResponse: [],
 				}
 			}
 			this.eventHandlers[key].onResponse.push(handler)
 
 			this.adapter.on({
 				...options,
-				credentials: this.credentials
+				credentials: this.credentials,
 			})
 		} catch (e) {
 			log.warn(e)
@@ -263,7 +263,7 @@ export class Mercury {
 			this.eventHandlers[eventId] = {
 				onFinished: [],
 				onError: [],
-				onResponse: []
+				onResponse: [],
 			}
 		}
 		if (handler) {
@@ -272,7 +272,7 @@ export class Mercury {
 		this.adapter.emit({
 			...options,
 			eventId,
-			credentials: this.credentials
+			credentials: this.credentials,
 		})
 
 		return this.emitOnFinishedCallback(eventId)
@@ -291,7 +291,7 @@ export class Mercury {
 						resolve()
 					}
 					return
-				}
+				},
 			})
 		})
 	}
@@ -319,7 +319,7 @@ export class Mercury {
 		setTimeout(() => {
 			this.waitConnection({
 				...options,
-				retryAttempt: retryAttempt + 1
+				retryAttempt: retryAttempt + 1,
 			})
 		}, intervalMS)
 	}
@@ -336,7 +336,7 @@ export class Mercury {
 			this.eventHandlers[eventId] = {
 				onFinished: [],
 				onError: [],
-				onResponse: []
+				onResponse: [],
 			}
 		}
 		if (onFinishedHandler) {
@@ -448,8 +448,8 @@ export class Mercury {
 			adapter: MercuryAdapterKind.SocketIO,
 			connectionOptions: {
 				socketIOUrl: spruceApiUrl,
-				...credentials
-			}
+				...credentials,
+			},
 		}
 	}
 
@@ -457,7 +457,7 @@ export class Mercury {
 	private async handleEvent(options: IMercuryOnOptions) {
 		log.debug('*** Mercury.handleEvent')
 		log.debug('Mercury: handleEvent', {
-			options
+			options,
 		})
 
 		const eventId = options && options.eventId
@@ -473,9 +473,9 @@ export class Mercury {
 			this.eventHandlers[eventId].onFinished
 		) {
 			log.debug('Event finished. Calling event handlers', {
-				onFinished: this.eventHandlers[eventId].onFinished
+				onFinished: this.eventHandlers[eventId].onFinished,
 			})
-			this.eventHandlers[eventId].onFinished.forEach(handler => {
+			this.eventHandlers[eventId].onFinished.forEach((handler) => {
 				this.executeHandler(handler, options)
 			})
 		} else if (
@@ -483,16 +483,16 @@ export class Mercury {
 			this.eventHandlers[eventId] &&
 			this.eventHandlers[eventId].onResponse
 		) {
-			this.eventHandlers[eventId].onResponse.forEach(handler => {
+			this.eventHandlers[eventId].onResponse.forEach((handler) => {
 				this.executeHandler(handler, options)
 			})
 		}
 
 		if (eventName) {
 			const possibleHandlerKeys = this.getPossibleEventHandlerKeys(options)
-			possibleHandlerKeys.forEach(key => {
+			possibleHandlerKeys.forEach((key) => {
 				if (this.eventHandlers[key] && this.eventHandlers[key].onResponse) {
-					this.eventHandlers[key].onResponse.forEach(handler => {
+					this.eventHandlers[key].onResponse.forEach((handler) => {
 						this.executeHandler(handler, options)
 					})
 				}
@@ -508,7 +508,7 @@ export class Mercury {
 		const { code, data } = options
 		log.debug('*** Mercury.handleError')
 		log.debug('Mercury: handleError', {
-			options
+			options,
 		})
 
 		const eventId = data && data.eventId
@@ -522,9 +522,9 @@ export class Mercury {
 			this.eventHandlers[eventId].onError
 		) {
 			log.debug('Event finished. Calling event error handlers', {
-				onError: this.eventHandlers[eventId].onError
+				onError: this.eventHandlers[eventId].onError,
 			})
-			this.eventHandlers[eventId].onError.forEach(handler => {
+			this.eventHandlers[eventId].onError.forEach((handler) => {
 				this.executeErrorHandler(handler, code)
 			})
 		}
@@ -599,7 +599,9 @@ export class Mercury {
 	/** UUID v4 generator (from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript) */
 	private uuid() {
 		// @ts-ignore
-		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (
+			c
+		) {
 			const r = (Math.random() * 16) | 0,
 				v = c == 'x' ? r : (r & 0x3) | 0x8
 			return v.toString(16)
