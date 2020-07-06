@@ -13,7 +13,7 @@ export default {
 		file: 'build/umd/mercury.js',
 		format: 'umd',
 		name: 'mercury',
-		sourceMap: true
+		sourcemap: true
 	},
 	external: ['fs', 'http', 'https', 'child_process'],
 	plugins: [

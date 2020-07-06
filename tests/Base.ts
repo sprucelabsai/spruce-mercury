@@ -20,7 +20,7 @@ export default class Base {
 	protected async after() {}
 
 	protected async wait(ms: number) {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			setTimeout(() => resolve(), ms)
 		})
 	}

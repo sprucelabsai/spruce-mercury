@@ -4,7 +4,7 @@ import {
 	TOnConnectFunctionHandler,
 	IMercuryEmitOptions,
 	IMercuryAdapterOnOptions,
-	TOnErrorHandler
+	TOnErrorHandler,
 } from '../Mercury'
 import { MercuryAdapter } from '../MercuryAdapter'
 // Import correct version depending on whether we're in browser or node.
@@ -82,7 +82,7 @@ export default class MercuryAdapterSocketIO implements MercuryAdapter {
 		this.socket = Socket(this.options.socketIOUrl, {
 			path: '/mercury',
 			transports: ['websocket', 'polling'],
-			rejectUnauthorized: false
+			rejectUnauthorized: false,
 		})
 		this.setupCoreEventHandlers()
 	}
