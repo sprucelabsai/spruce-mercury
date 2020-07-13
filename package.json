@@ -33,7 +33,9 @@
     "test": "mocha -r ts-node/register/transpile-only --exit 'tests/**/*Tests*'",
     "release": "semantic-release",
     "arkit": "arkit -f index.ts -o docs/images/arkit.svg",
-    "arkit.png": "arkit -f index.ts -o docs/images/arkit.png"
+    "arkit.png": "arkit -f index.ts -o docs/images/arkit.png",
+    "upgrade.all": "yarn upgrade --latest && rm yarn.lock | true && yarn | true && yarn lint.fix | true",
+    "upgrade.local": "yarn upgrade.all && yarn lint && yarn test && yarn build"
   },
   "dependencies": {
     "debug": "^4.1.1",
@@ -42,15 +44,15 @@
     "superagent": "^5.1.2"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^13.0.0",
+    "@rollup/plugin-commonjs": "^13.0.1",
     "@rollup/plugin-json": "^4.0.1",
-    "@rollup/plugin-node-resolve": "^8.1.0",
-    "@rollup/plugin-typescript": "^5.0.1",
+    "@rollup/plugin-node-resolve": "^8.4.0",
+    "@rollup/plugin-typescript": "^5.0.2",
     "@sprucelabs/semantic-release": "^4.0.4",
     "@types/chai": "^4.2.3",
     "@types/debug": "^4.1.5",
     "@types/faker": "^4.1.11",
-    "@types/mocha": "^7.0.2",
+    "@types/mocha": "^8.0.0",
     "@types/socket.io-client": "^1.4.32",
     "add": "^2.0.6",
     "arkit": "^1.6.4",
