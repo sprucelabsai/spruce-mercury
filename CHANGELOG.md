@@ -1,3 +1,5 @@
+## [10.5.13](https://github.com/sprucelabsai/spruce-mercury/compare/v10.5.12...v10.5.13) (2020-07-16)
+
 ## [10.5.12](https://github.com/sprucelabsai/spruce-mercury/compare/v10.5.11...v10.5.12) (2020-07-14)
 
 ## [10.5.11](https://github.com/sprucelabsai/spruce-mercury/compare/v10.5.10...v10.5.11) (2020-07-14)
