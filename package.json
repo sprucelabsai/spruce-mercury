@@ -34,7 +34,7 @@
     "release": "semantic-release",
     "arkit": "arkit -f index.ts -o docs/images/arkit.svg",
     "arkit.png": "arkit -f index.ts -o docs/images/arkit.png",
-    "upgrade.base": "yarn upgrade --latest && rm yarn.lock | true && yarn | true && yarn lint.fix | true",
+    "upgrade.base": "yarn upgrade --latest && rm yarn.lock | true && yarn | true && yarn lint.fix || true",
     "up": "yarn upgrade.base && yarn lint && yarn build && yarn test"
   },
   "dependencies": {
